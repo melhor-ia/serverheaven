@@ -71,6 +71,7 @@ node_modules/
 # documentation
 .obsidian/
 .cursor/
+<<<<<<< HEAD
 drafts/
 
 # Next.js build output
@@ -78,3 +79,6 @@ platforms/web/.next
 
 # Local environment variables
 platforms/web/.env.local
+=======
+drafts/
+>>>>>>> 277ad34 (env setup)

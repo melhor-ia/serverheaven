@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "server-heaven-backend"
+version = "0.1.0"
+description = "Backend for Server Heaven, running on Firebase Functions."
+authors = ["Willian Oliveira <contato@melhor-ia.com>"]
+readme = "README.md"
+packages = [{include = "api"}, {include = "core"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.111.0"
+uvicorn = {extras = ["standard"], version = "^0.29.0"}
+firebase-admin = "^6.5.0"
+firebase-functions = "0.2.0"
+python-decouple = "^3.8"
+mangum = "^0.17.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api" 

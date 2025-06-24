@@ -1,0 +1,19 @@
+{
+  "name": "server-heaven",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "serve": "firebase serve",
+    "deploy": "firebase deploy"
+  },
+  "dependencies": {
+    "firebase": "^11.9.1"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "dotenv": "^16.0.0"
+  }
+}
