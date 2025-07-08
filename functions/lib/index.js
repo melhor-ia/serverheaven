@@ -40,16 +40,25 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.helloWorld = void 0;
+exports.getGreeting = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const logger = __importStar(require("firebase-functions/logger"));
 const admin = __importStar(require("firebase-admin"));
+const cors_1 = __importDefault(require("cors"));
+const corsHandler = (0, cors_1.default)({ origin: true });
 admin.initializeApp();
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
-exports.helloWorld = (0, https_1.onRequest)((request, response) => {
-    logger.info("Hello logs!", { structuredData: true });
-    response.send("Hello from Firebase!");
+exports.getGreeting = (0, https_1.onRequest)((request, response) => {
+    corsHandler(request, response, () => {
+        logger.info("getGreeting function called", { structuredData: true });
+        response.status(200).send({
+            message: "Hello from the backend!",
+        });
+    });
 });
 //# sourceMappingURL=index.js.map
