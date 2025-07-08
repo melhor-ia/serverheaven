@@ -1,12 +1,4 @@
 "use strict";
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -40,25 +32,82 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getGreeting = void 0;
+exports.api = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const logger = __importStar(require("firebase-functions/logger"));
 const admin = __importStar(require("firebase-admin"));
+const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
-const corsHandler = (0, cors_1.default)({ origin: true });
+const middleware_1 = require("./middleware");
+const firestore_1 = require("firebase-admin/firestore");
 admin.initializeApp();
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
-exports.getGreeting = (0, https_1.onRequest)((request, response) => {
-    corsHandler(request, response, () => {
-        logger.info("getGreeting function called", { structuredData: true });
-        response.status(200).send({
-            message: "Hello from the backend!",
-        });
+const app = (0, express_1.default)();
+app.use(express_1.default.json());
+app.use((0, cors_1.default)({ origin: true }));
+app.get("/", (req, res) => {
+    logger.info("Hello from the backend!", { structuredData: true });
+    res.status(200).send({
+        message: "Hello from the backend api!",
     });
 });
+app.get("/profile/:userId", async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const userDoc = await admin.firestore().collection("users").doc(userId).get();
+        if (!userDoc.exists) {
+            res.status(404).send({ message: "User not found" });
+            return;
+        }
+        const userData = userDoc.data();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { email, ...publicProfile } = userData;
+        res.status(200).send(publicProfile);
+    }
+    catch (error) {
+        logger.error("Error fetching user profile:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+app.patch("/profile", middleware_1.authenticate, async (req, res) => {
+    const userId = req.user?.uid;
+    if (!userId) {
+        res.status(401).send({ message: "Unauthorized" });
+        return;
+    }
+    const { displayName, bio, avatarUrl } = req.body;
+    const userProfile = {};
+    if (displayName !== undefined)
+        userProfile.display_name = displayName;
+    if (bio !== undefined)
+        userProfile.bio = bio;
+    if (avatarUrl !== undefined)
+        userProfile.avatar_url = avatarUrl;
+    if (Object.keys(userProfile).length === 0) {
+        res.status(400).send({ message: "No fields to update" });
+        return;
+    }
+    userProfile.updated_at = firestore_1.FieldValue.serverTimestamp();
+    try {
+        const userRef = admin.firestore().collection("users").doc(userId);
+        await userRef.update(userProfile);
+        const updatedUser = await userRef.get();
+        const updatedUserData = updatedUser.data();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { email, ...publicProfile } = updatedUserData;
+        res.status(200).send(publicProfile);
+    }
+    catch (error) {
+        logger.error("Error updating user profile:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+__exportStar(require("./users"), exports);
+exports.api = (0, https_1.onRequest)(app);
 //# sourceMappingURL=index.js.map
