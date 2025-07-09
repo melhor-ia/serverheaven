@@ -5,9 +5,11 @@ import express, {Request, Response} from "express";
 import cors from "cors";
 import usersRouter, { onUserCreate } from "./users";
 import serversRouter from "./servers";
+import reviewsRouter, { onReviewCreate } from "./reviews";
 
 if (admin.apps.length === 0) {
     admin.initializeApp();
+    admin.firestore().settings({ ignoreUndefinedProperties: true });
 }
 
 const app = express();
@@ -23,6 +25,7 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/users", usersRouter);
 app.use("/servers", serversRouter);
+app.use("/reviews", reviewsRouter);
 
-export { onUserCreate };
-export const api = onRequest(app); 
+export { onUserCreate, onReviewCreate };
+export const api = onRequest(app);

@@ -14,7 +14,10 @@ interface Server {
     website_url?: string;
     discord_url?: string;
     tags: string[];
-    reputation_score: number;
+    rating: {
+        average: number;
+        count: number;
+    };
     owner_id: string;
     game_id: string;
     created_at: FirebaseFirestore.Timestamp;
@@ -43,7 +46,7 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res) => {
         }
 
         const newServerRef = db.collection("servers").doc();
-        const serverData: Server = {
+        const serverData: Omit<Server, "created_at" | "updated_at"> = {
             id: newServerRef.id,
             name,
             description,
@@ -51,18 +54,24 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res) => {
             website_url: website_url || "",
             discord_url: discord_url || "",
             tags: tags || [],
-            reputation_score: 0,
+            rating: {
+                average: 0,
+                count: 0,
+            },
             owner_id: userId,
             game_id,
-            created_at: FieldValue.serverTimestamp() as FirebaseFirestore.Timestamp,
-            updated_at: FieldValue.serverTimestamp() as FirebaseFirestore.Timestamp,
             status: 'active',
             admins: [userId],
         };
 
-        await newServerRef.set(serverData);
+        await newServerRef.set({
+            ...serverData,
+            created_at: FieldValue.serverTimestamp(),
+            updated_at: FieldValue.serverTimestamp(),
+        });
 
-        res.status(201).send(serverData);
+        const newServerDoc = await newServerRef.get();
+        res.status(201).send(newServerDoc.data());
     } catch (error) {
         console.error("Error creating server:", error);
         res.status(500).send({ message: "Internal Server Error" });

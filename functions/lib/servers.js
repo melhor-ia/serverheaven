@@ -62,16 +62,22 @@ router.post("/", middleware_1.authenticate, async (req, res) => {
             website_url: website_url || "",
             discord_url: discord_url || "",
             tags: tags || [],
-            reputation_score: 0,
+            rating: {
+                average: 0,
+                count: 0,
+            },
             owner_id: userId,
             game_id,
-            created_at: firestore_1.FieldValue.serverTimestamp(),
-            updated_at: firestore_1.FieldValue.serverTimestamp(),
             status: 'active',
             admins: [userId],
         };
-        await newServerRef.set(serverData);
-        res.status(201).send(serverData);
+        await newServerRef.set({
+            ...serverData,
+            created_at: firestore_1.FieldValue.serverTimestamp(),
+            updated_at: firestore_1.FieldValue.serverTimestamp(),
+        });
+        const newServerDoc = await newServerRef.get();
+        res.status(201).send(newServerDoc.data());
     }
     catch (error) {
         console.error("Error creating server:", error);

@@ -17,7 +17,10 @@ interface UserDocument {
     email: string;
     avatar_url: string;
     bio: string;
-    reputation_score: number;
+    rating: {
+        average: number;
+        count: number;
+    };
     is_supporter: boolean;
     supporter_since: admin.firestore.Timestamp | null;
     created_at: admin.firestore.Timestamp;
@@ -101,7 +104,10 @@ export const onUserCreate = functions.auth.user().onCreate(async (user: auth.Use
         email: email || "",
         avatar_url: "",
         bio: "",
-        reputation_score: 4,
+        rating: {
+            average: 0,
+            count: 0,
+        },
         is_supporter: false,
         supporter_since: null,
         created_at: FieldValue.serverTimestamp(),

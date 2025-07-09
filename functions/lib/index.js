@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.api = exports.onUserCreate = void 0;
+exports.api = exports.onReviewCreate = exports.onUserCreate = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const logger = __importStar(require("firebase-functions/logger"));
 const admin = __importStar(require("firebase-admin"));
@@ -45,8 +45,11 @@ const cors_1 = __importDefault(require("cors"));
 const users_1 = __importStar(require("./users"));
 Object.defineProperty(exports, "onUserCreate", { enumerable: true, get: function () { return users_1.onUserCreate; } });
 const servers_1 = __importDefault(require("./servers"));
+const reviews_1 = __importStar(require("./reviews"));
+Object.defineProperty(exports, "onReviewCreate", { enumerable: true, get: function () { return reviews_1.onReviewCreate; } });
 if (admin.apps.length === 0) {
     admin.initializeApp();
+    admin.firestore().settings({ ignoreUndefinedProperties: true });
 }
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)({ origin: true }));
@@ -59,5 +62,6 @@ app.get("/", (req, res) => {
 });
 app.use("/users", users_1.default);
 app.use("/servers", servers_1.default);
+app.use("/reviews", reviews_1.default);
 exports.api = (0, https_1.onRequest)(app);
 //# sourceMappingURL=index.js.map

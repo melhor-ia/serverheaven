@@ -110,7 +110,10 @@ exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
         email: email || "",
         avatar_url: "",
         bio: "",
-        reputation_score: 0,
+        rating: {
+            average: 0,
+            count: 0,
+        },
         is_supporter: false,
         supporter_since: null,
         created_at: firestore_1.FieldValue.serverTimestamp(),
