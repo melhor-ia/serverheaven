@@ -16,12 +16,12 @@ A entidade principal deste sistema é o **User**, conforme detalhado em [[Modela
     *   Um usuário autenticado pode atualizar seu nome de exibição, biografia e URL do avatar através de um formulário em sua página de perfil.
 
 ## APIs / Interfaces
-As seguintes rotas de API foram implementadas no serviço `api` (Cloud Function):
+As seguintes rotas de API foram implementadas no serviço `api` (Cloud Function) sob o prefixo `/users`:
 
-*   `GET /profile/:userId`
+*   `GET /users/profile/:userId`
     *   **Descrição:** Retorna os dados públicos do perfil de um usuário.
     *   **Proteção:** Nenhuma.
-*   `PATCH /profile`
+*   `PATCH /users/profile`
     *   **Descrição:** Atualiza o perfil do usuário autenticado.
     *   **Proteção:** Requer token de autenticação do Firebase (Bearer Token).
 
@@ -35,5 +35,6 @@ As seguintes rotas de API foram implementadas no serviço `api` (Cloud Function)
 *   [[Fluxos Principais de Usuário e API]]
 
 ## Histórico de Alterações
+*   **2024-07-28:** Refatoração dos endpoints de perfil para o prefixo `/users`.
 *   **2024-07-27:** Correção do erro de `serverTimestamp` na criação e atualização de perfis de usuário.
 *   **2024-07-26:** Implementação inicial do fluxo de autenticação, criação de perfil via trigger e endpoints de API para obter e atualizar perfis. 

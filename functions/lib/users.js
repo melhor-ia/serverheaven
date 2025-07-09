@@ -32,14 +32,74 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.onUserCreate = void 0;
 const functions = __importStar(require("firebase-functions/v1"));
 const admin = __importStar(require("firebase-admin"));
 const firestore_1 = require("firebase-admin/firestore");
+const express_1 = __importDefault(require("express"));
+const middleware_1 = require("./middleware");
+const logger = __importStar(require("firebase-functions/logger"));
 if (admin.apps.length === 0) {
     admin.initializeApp();
 }
+const router = express_1.default.Router();
+// GET /users/profile/:userId - Get user profile
+router.get("/profile/:userId", async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const userDoc = await admin.firestore().collection("users").doc(userId).get();
+        if (!userDoc.exists) {
+            res.status(404).send({ message: "User not found" });
+            return;
+        }
+        const userData = userDoc.data();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { email, ...publicProfile } = userData;
+        res.status(200).send(publicProfile);
+    }
+    catch (error) {
+        logger.error("Error fetching user profile:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+// PATCH /users/profile - Update user profile
+router.patch("/profile", middleware_1.authenticate, async (req, res) => {
+    const userId = req.user?.uid;
+    if (!userId) {
+        res.status(401).send({ message: "Unauthorized" });
+        return;
+    }
+    const { displayName, bio, avatarUrl } = req.body;
+    const userProfile = {};
+    if (displayName !== undefined)
+        userProfile.display_name = displayName;
+    if (bio !== undefined)
+        userProfile.bio = bio;
+    if (avatarUrl !== undefined)
+        userProfile.avatar_url = avatarUrl;
+    if (Object.keys(userProfile).length === 0) {
+        res.status(400).send({ message: "No fields to update" });
+        return;
+    }
+    userProfile.updated_at = firestore_1.FieldValue.serverTimestamp();
+    try {
+        const userRef = admin.firestore().collection("users").doc(userId);
+        await userRef.update(userProfile);
+        const updatedUser = await userRef.get();
+        const updatedUserData = updatedUser.data();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { email, ...publicProfile } = updatedUserData;
+        res.status(200).send(publicProfile);
+    }
+    catch (error) {
+        logger.error("Error updating user profile:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
 exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
     const { uid, email } = user;
     const username = email?.split("@")[0] || uid;
@@ -59,4 +119,5 @@ exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
     };
     await admin.firestore().collection("users").doc(uid).set(newUser);
 });
+exports.default = router;
 //# sourceMappingURL=users.js.map

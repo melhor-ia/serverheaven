@@ -1,4 +1,4 @@
-### 🔗 Visão Geral da Modelagem
+npm run ### 🔗 Visão Geral da Modelagem
 A modelagem de dados do Server Heaven foi pensada para ser **modular, escalável, multigame e moderation-ready**, refletindo as decisões estratégicas adotadas no projeto:
 
 * Plataforma **open-source**, sem billing direto, utilizando **Patreon como sistema de apoio comunitário**.

@@ -41,35 +41,37 @@ export default function Auth() {
 
     if (user) {
         return (
-            <div>
+            <div className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-8 mt-4">
                 <p>Welcome, {user.email}</p>
                 <Link href="/profile">My Profile</Link>
                 <br />
-                <button onClick={handleSignOut}>Sign Out</button>
+                <button onClick={handleSignOut} className="w-full p-3 mt-4 mb-2 bg-transparent border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white rounded-md font-semibold cursor-pointer">Sign Out</button>
                 {error && <p style={{ color: "red" }}>{error}</p>}
             </div>
         );
     }
 
     return (
-        <div>
-            <h2>{isSignUp ? "Sign Up" : "Sign In"}</h2>
+        <div className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-8 mt-4">
+            <h2 className="text-2xl font-bold mb-6">{isSignUp ? "Sign Up" : "Sign In"}</h2>
             <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
+                className="w-full p-3 mb-4 bg-transparent border border-zinc-300 dark:border-zinc-600 rounded-md"
             />
             <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
+                className="w-full p-3 mb-4 bg-transparent border border-zinc-300 dark:border-zinc-600 rounded-md"
             />
-            <button onClick={handleAuthAction}>
+            <button onClick={handleAuthAction} className="w-full p-3 mb-2 bg-blue-600 text-white rounded-md font-semibold cursor-pointer">
                 {isSignUp ? "Sign Up" : "Sign In"}
             </button>
-            <button onClick={() => setIsSignUp(!isSignUp)}>
+            <button onClick={() => setIsSignUp(!isSignUp)} className="w-full p-3 mb-2 bg-transparent border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white rounded-md font-semibold cursor-pointer">
                 Switch to {isSignUp ? "Sign In" : "Sign Up"}
             </button>
             {error && <p style={{ color: "red" }}>{error}</p>}
