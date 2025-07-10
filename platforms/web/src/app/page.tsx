@@ -49,7 +49,7 @@ export default function Home() {
       <div className="flex min-h-screen flex-col bg-background text-foreground">
         {/* Header */}
         <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
+          <div className="w-full px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="relative h-8 w-8 overflow-hidden rounded-md bg-emerald-600 flex items-center justify-center">
                 <CloudCog className="h-7 w-7 text-white" />
@@ -77,14 +77,14 @@ export default function Home() {
             <div
               className="absolute inset-0 bg-cover bg-center opacity-80 animate-ken-burns-horizontal"
               style={{ 
-                backgroundImage: "url('C:parallaxe-banner.jpg')",
+                backgroundImage: "url('/parallaxe-banner.jpg')",
                 transform: `translateY(${scrollY * 0.15}px)` 
               }}
             ></div>
             <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/30 to-emerald-900/20"></div>
             <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/90 to-transparent"></div>
           </div>
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 max-w-7xl">
+          <div className="w-full px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="grid gap-8 md:grid-cols-2 items-center">
               <div className="space-y-6">
                 <Badge className="bg-emerald-600 text-white hover:bg-emerald-700 px-3 py-1 text-sm">
@@ -124,12 +124,12 @@ export default function Home() {
 
         {/* Problems & Solutions Section */}
         <section id="challenges" className="relative py-20 md:py-32 bg-gradient-to-bl from-background via-emerald-950/5 to-background/80">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16 max-w-3xl mx-auto">
               <Badge className="mb-4 bg-emerald-600 text-white hover:bg-emerald-700">Challenges We Address</Badge>
               <h2 className="text-3xl md:text-5xl font-bold mb-6">Building Better Server Experiences</h2>
               <p className="text-muted-foreground text-lg">
-                We're focused on overcoming common hurdles in Minecraft server communities to enhance the experience for everyone.
+                We&apos;re focused on overcoming common hurdles in Minecraft server communities to enhance the experience for everyone.
               </p>
             </div>
 
@@ -223,7 +223,7 @@ export default function Home() {
 
         {/* How It Works Section */}
         <section id="how-it-works" className="py-20 md:py-32 bg-gradient-to-tr from-background/80 via-emerald-950/5 to-background">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16 max-w-3xl mx-auto">
               <Badge className="mb-4 bg-emerald-900 text-white hover:bg-emerald-800">Process</Badge>
               <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">How It Works</h2>
@@ -314,10 +314,10 @@ export default function Home() {
         {/* Features Section */}
         <section id="features" className="relative py-20 md:py-32 bg-gradient-to-br from-background via-emerald-950/5 to-background/90">
           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-emerald-950/30 to-transparent pointer-events-none"></div>
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16 max-w-3xl mx-auto">
               <Badge className="mb-4 bg-emerald-900 text-white hover:bg-emerald-800">Features</Badge>
-              <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">Key Features</h2>
+              <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">Our Core Features</h2>
               <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
                 Tools designed specifically for Minecraft communities to build trust and create better experiences.
               </p>
@@ -351,7 +351,7 @@ export default function Home() {
         {/* Pricing/Boosts Section */}
         <section className="relative py-20 md:py-32 bg-gradient-to-b from-emerald-950/30 via-emerald-950/20 to-emerald-950/50">
           <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-background/70 to-transparent pointer-events-none"></div>
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+          <div className="w-full px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="text-center mb-16 max-w-3xl mx-auto">
               <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">Free For All</h2>
               <p className="text-center text-lg mb-16 max-w-3xl mx-auto text-muted-foreground">
