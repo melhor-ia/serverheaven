@@ -72,21 +72,11 @@ node_modules/
 # documentation
 .obsidian/
 .cursor/
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 88ecc8a (feat: server entity)
 drafts/
+.references/
 
 # Next.js build output
 platforms/web/.next
 
 # Local environment variables
-<<<<<<< HEAD
 platforms/web/.env.local
-=======
-drafts/
->>>>>>> 277ad34 (env setup)
-=======
-platforms/web/.env.local
->>>>>>> 88ecc8a (feat: server entity)
