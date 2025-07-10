@@ -47,6 +47,8 @@ Object.defineProperty(exports, "onUserCreate", { enumerable: true, get: function
 const servers_1 = __importDefault(require("./servers"));
 const reviews_1 = __importStar(require("./reviews"));
 Object.defineProperty(exports, "onReviewCreate", { enumerable: true, get: function () { return reviews_1.onReviewCreate; } });
+const posts_1 = __importDefault(require("./posts"));
+const seed_1 = require("./seed");
 if (admin.apps.length === 0) {
     admin.initializeApp();
     admin.firestore().settings({ ignoreUndefinedProperties: true });
@@ -54,6 +56,19 @@ if (admin.apps.length === 0) {
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)({ origin: true }));
 app.use(express_1.default.json());
+// Middleware to adapt callable requests to Express
+app.use((req, res, next) => {
+    // Check if the request is from a callable function
+    if (req.body.data && req.body.data.route) {
+        // Here we are adapting the request to make it look like a normal HTTP request
+        console.log(`Callable request detected for route: ${req.body.data.route}`);
+        req.method = req.body.data.method || 'POST'; // Default to POST if not specified
+        req.url = `/${req.body.data.route}`;
+        req.body = req.body.data.data || {}; // The actual payload for the request
+        console.log(`Rewriting to ${req.method} ${req.url}`);
+    }
+    next();
+});
 app.get("/", (req, res) => {
     logger.info("Hello from the backend!", { structuredData: true });
     res.status(200).send({
@@ -63,5 +78,16 @@ app.get("/", (req, res) => {
 app.use("/users", users_1.default);
 app.use("/servers", servers_1.default);
 app.use("/reviews", reviews_1.default);
+app.use("/posts", posts_1.default);
+app.post("/seed", async (req, res) => {
+    try {
+        const result = await (0, seed_1.seedDatabase)();
+        res.status(200).send(result);
+    }
+    catch (error) {
+        console.error("Error seeding database:", error);
+        res.status(500).send({ success: false, message: "Failed to seed database." });
+    }
+});
 exports.api = (0, https_1.onRequest)(app);
 //# sourceMappingURL=index.js.map
