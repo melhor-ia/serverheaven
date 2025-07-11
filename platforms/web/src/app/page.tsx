@@ -7,21 +7,17 @@ import { Button } from "./components/ui/Button";
 import { Badge } from "./components/ui/badge";
 import { AnimatedGridBackground } from "./components/ui/AnimatedGridBackground";
 import Link from 'next/link';
+import { BetaSignupModal } from './components/BetaSignupModal';
 
 export default function Home() {
-  const [playerCount, setPlayerCount] = useState(4127);
   const [scrollY, setScrollY] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { ref: refStep1, inView: inViewStep1 } = useInView({ triggerOnce: true, rootMargin: '-50px 0px' });
   const { ref: refStep2, inView: inViewStep2 } = useInView({ triggerOnce: true, rootMargin: '-50px 0px' });
   const { ref: refStep3, inView: inViewStep3 } = useInView({ triggerOnce: true, rootMargin: '-50px 0px' });
 
   useEffect(() => {
-    const baseCount = 840;
-    setTimeout(() => {
-      setPlayerCount(baseCount + 3287);
-    }, 1000);
-
     const handleScroll = () => {
       setScrollY(window.scrollY);
     };
@@ -31,11 +27,16 @@ export default function Home() {
   }, []);
 
   const openLoginModal = () => {
-    alert("Login modal would open here!");
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
   };
 
   return (
     <>
+      <BetaSignupModal isOpen={isModalOpen} onClose={closeModal} />
       <div className="flex min-h-screen flex-col bg-background text-foreground">
         {/* HUD-Style Header */}
         <header className="sticky top-0 z-50 w-full hud-panel">
