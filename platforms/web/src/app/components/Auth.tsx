@@ -25,8 +25,12 @@ export default function Auth() {
             } else {
                 await signInWithEmailAndPassword(auth, email, password);
             }
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("An unexpected error occurred.");
+            }
         }
     };
 
@@ -34,8 +38,12 @@ export default function Auth() {
         setError(null);
         try {
             await signOut(auth);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("An unexpected error occurred.");
+            }
         }
     };
 

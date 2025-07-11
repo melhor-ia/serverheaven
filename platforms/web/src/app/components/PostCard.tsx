@@ -3,6 +3,7 @@
 import { Post } from '@/lib/types';
 import { FaHeart, FaComment, FaUserCircle } from 'react-icons/fa';
 import { useState } from 'react';
+import Image from 'next/image';
 
 interface PostCardProps {
     post: Post;
@@ -36,9 +37,9 @@ const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
             <p className="text-gray-300 mb-4">{post.content}</p>
 
             {post.media_urls && post.media_urls.length > 0 && (
-                <div className="mb-4">
+                <div className="relative mb-4 h-96">
                     {/* Placeholder for media content */}
-                    <img src={post.media_urls[0]} alt="Post media" className="rounded-lg max-h-96 w-full object-cover" />
+                    <Image src={post.media_urls[0]} alt="Post media" fill className="rounded-lg object-cover" />
                 </div>
             )}
             

@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Image from "next/image";
+
+interface Timestamp {
+    _seconds: number;
+    _nanoseconds: number;
+}
 
 interface UserProfile {
     id: string;
@@ -11,7 +17,7 @@ interface UserProfile {
     bio: string;
     reputation_score: number;
     is_supporter: boolean;
-    created_at: any;
+    created_at: Timestamp;
 }
 
 export default function UserProfilePage() {
@@ -37,8 +43,10 @@ export default function UserProfilePage() {
                     
                     const data = await response.json();
                     setProfile(data);
-                } catch (err: any) {
-                    setError(err.message);
+                } catch (err) {
+                    if (err instanceof Error) {
+                        setError(err.message);
+                    }
                 } finally {
                     setLoading(false);
                 }
@@ -53,9 +61,9 @@ export default function UserProfilePage() {
 
     return (
         <div>
-            <h1>{profile.display_name}'s Profile</h1>
+            <h1>{profile.display_name}&apos;s Profile</h1>
             <p>Username: {profile.username}</p>
-            {profile.avatar_url && <img src={profile.avatar_url} alt="Avatar" width="100" />}
+            {profile.avatar_url && <Image src={profile.avatar_url} alt="Avatar" width={100} height={100} />}
             <p>Bio: {profile.bio}</p>
             <p>Reputation: {profile.reputation_score}</p>
             <p>Supporter: {profile.is_supporter ? "Yes" : "No"}</p>

@@ -2,15 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { ArrowRight, UserCog, Scale, Handshake, CloudCog, Info } from 'lucide-react';
+import { ArrowRight, UserCog, Scale, Handshake, CloudCog, Shield, Zap, Target, Users, Star, Activity } from 'lucide-react';
 import { Button } from "./components/ui/Button";
 import { Badge } from "./components/ui/badge";
+import { AnimatedGridBackground } from "./components/ui/AnimatedGridBackground";
 import Link from 'next/link';
-// import { useAuth } from './contexts/AuthContext'; // Assuming AuthContext exists
 
 export default function Home() {
-  // const { user, login } = useAuth(); // from useAuth
-  const [waitlistCount, setWaitlistCount] = useState(4127);
+  const [playerCount, setPlayerCount] = useState(4127);
   const [scrollY, setScrollY] = useState(0);
 
   const { ref: refStep1, inView: inViewStep1 } = useInView({ triggerOnce: true, rootMargin: '-50px 0px' });
@@ -18,11 +17,9 @@ export default function Home() {
   const { ref: refStep3, inView: inViewStep3 } = useInView({ triggerOnce: true, rootMargin: '-50px 0px' });
 
   useEffect(() => {
-    // In a real app, you'd fetch this from your backend/Firebase
-    const baseWaitlistCount = 840;
-    // For now, we'll just simulate a fetch
+    const baseCount = 840;
     setTimeout(() => {
-      setWaitlistCount(baseWaitlistCount + 3287); // simulated fetched count
+      setPlayerCount(baseCount + 3287);
     }, 1000);
 
     const handleScroll = () => {
@@ -30,91 +27,181 @@ export default function Home() {
     };
 
     window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Placeholder for login modal
   const openLoginModal = () => {
     alert("Login modal would open here!");
-    // In a real implementation, you'd set a state to show a modal
-    // e.g., setShowLoginModal(true)
   };
 
   return (
     <>
-      {/* SEO and Head management would be in layout.tsx or using Next.js Head component */}
       <div className="flex min-h-screen flex-col bg-background text-foreground">
-        {/* Header */}
-        <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        {/* HUD-Style Header */}
+        <header className="sticky top-0 z-50 w-full hud-panel">
           <div className="w-full px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="relative h-8 w-8 overflow-hidden rounded-md bg-emerald-600 flex items-center justify-center">
-                <CloudCog className="h-7 w-7 text-white" />
+            <div className="flex items-center gap-3">
+              <div className="relative h-10 w-10 overflow-hidden rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-glow-sm">
+                <CloudCog className="h-6 w-6 text-black" />
               </div>
-              <span className="text-xl font-bold tracking-tight">ServerHeaven.co</span>
+              <span className="text-xl font-bold tracking-tight hud-text-glow font-mono">
+                SERVER<span className="text-emerald-400">HEAVEN</span>
+              </span>
             </div>
-            <nav className="hidden md:flex gap-6">
-              <a href="#features" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+            
+            <nav className="hidden md:flex gap-8">
+              <a href="#features" className="text-sm font-medium text-muted-foreground transition-colors hover:text-emerald-400 font-mono uppercase tracking-wider">
                 Features
               </a>
-              <a href="#how-it-works" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+              <a href="#how-it-works" className="text-sm font-medium text-muted-foreground transition-colors hover:text-emerald-400 font-mono uppercase tracking-wider">
                 How It Works
               </a>
-              <a href="#challenges" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
-                Challenges
+              <a href="#mission" className="text-sm font-medium text-muted-foreground transition-colors hover:text-emerald-400 font-mono uppercase tracking-wider">
+                Mission
               </a>
             </nav>
-            <Button onClick={openLoginModal} className="bg-emerald-600 hover:bg-emerald-700 text-white">Login</Button>
+            
+            <Button onClick={openLoginModal} className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold shadow-glow uppercase tracking-wider">
+              Get Started
+            </Button>
           </div>
         </header>
 
-        {/* Hero Section */}
+        {/* Hero Section - Command Center */}
         <section className="relative py-20 md:py-32 overflow-hidden">
+          <AnimatedGridBackground />
+          
           <div className="absolute inset-0 z-0">
             <div
-              className="absolute inset-0 bg-cover bg-center opacity-80 animate-ken-burns-horizontal"
+              className="absolute inset-0 bg-cover bg-center opacity-60"
               style={{ 
                 backgroundImage: "url('/parallaxe-banner.jpg')",
-                transform: `translateY(${scrollY * 0.15}px)` 
+                transform: `translateY(${scrollY * 0.1}px)` 
               }}
-            ></div>
-            <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/30 to-emerald-900/20"></div>
-            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/90 to-transparent"></div>
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/80" />
           </div>
+          
           <div className="w-full px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="grid gap-8 md:grid-cols-2 items-center">
-              <div className="space-y-6">
-                <Badge className="bg-emerald-600 text-white hover:bg-emerald-700 px-3 py-1 text-sm">
-                  Beta Access Coming Soon
-                </Badge>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white">
-                  Find (or host) the perfect server — no surprises.
-                </h1>
-                <p className="text-lg md:text-xl text-muted-foreground max-w-md">
-                  Forge lasting Minecraft groups. We connect you with verified players and hosts through transparent ratings and secure invites.
+            <div className="max-w-4xl mx-auto text-center space-y-8">
+              <div className="inline-flex items-center gap-2 hud-panel px-4 py-2 rounded-full">
+                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                <span className="text-sm font-mono text-emerald-400 uppercase tracking-wider">Beta Access Coming Soon</span>
+              </div>
+              
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-tight">
+                <span className="glitch hud-text-glow" data-text="FIND OR HOST">FIND OR HOST</span>
+                <br />
+                <span className="bg-gradient-to-r from-emerald-400 to-emerald-500 bg-clip-text text-transparent">
+                  THE PERFECT SERVER
+                </span>
+                <br />
+                <span className="text-3xl md:text-4xl lg:text-5xl text-gray-300">
+                  No More Guessing
+                </span>
+              </h1>
+              
+              <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+                Smart matchmaking for Minecraft communities. Connect with trusted players and servers through 
+                <span className="text-emerald-400 font-semibold"> verified reputation systems</span> and 
+                <span className="text-emerald-400 font-semibold"> transparent community feedback</span>.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold group transition-all duration-300 shadow-glow-lg uppercase tracking-wider"
+                  onClick={openLoginModal}
+                >
+                  Join Beta Access
+                  <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                </Button>
+              </div>
+              
+            </div>
+          </div>
+        </section>
+
+        {/* Mission Brief Section */}
+        <section id="mission" className="relative py-20 md:py-32">
+          <AnimatedGridBackground variant="sparse" />
+          
+          <div className="w-full px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto">
+              <div className="text-center mb-16">
+                <Badge className="mb-4 bg-emerald-500/20 text-emerald-400 border-emerald-400/30 font-mono uppercase">Our Solution</Badge>
+                <h2 className="text-3xl md:text-5xl font-bold mb-6 hud-text-glow">Why ServerHeaven Works</h2>
+                <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+                  Eliminate guesswork in server selection. Smart systems that match you with the right communities.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Button
-                    size="lg"
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white group transition-all duration-300"
-                    onClick={openLoginModal}
-                  >
-                    Login / Get Started
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                  </Button>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+                {/* For Players */}
+                <div className="hud-panel p-8 rounded-xl transition-all duration-300 hover:shadow-hud-active group">
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="p-3 bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 rounded-lg border border-emerald-400/30">
+                      <Users className="h-8 w-8 text-emerald-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-white font-mono">For Players</h3>
+                      <p className="text-muted-foreground">Smart discovery tools</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="glass p-6 rounded-lg relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-emerald-500" />
+                      <h4 className="font-bold text-xl text-emerald-400 mb-4 font-mono">What We Offer:</h4>
+                      <ul className="space-y-3">
+                        <li className="flex gap-3">
+                          <div className="w-2 h-2 rounded-full bg-emerald-400 mt-2 flex-shrink-0" />
+                          <p><span className="font-semibold text-emerald-300">Live Server Data:</span> Real-time server metrics, uptime tracking, and performance insights</p>
+                        </li>
+                        <li className="flex gap-3">
+                          <div className="w-2 h-2 rounded-full bg-emerald-400 mt-2 flex-shrink-0" />
+                          <p><span className="font-semibold text-emerald-300">Smart Filtering:</span> Find servers by gameplay style, mods, community size, and preferences</p>
+                        </li>
+                        <li className="flex gap-3">
+                          <div className="w-2 h-2 rounded-full bg-emerald-400 mt-2 flex-shrink-0" />
+                          <p><span className="font-semibold text-emerald-300">Trusted Reviews:</span> Verified feedback from real players with confirmed playtime</p>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span className="font-semibold text-emerald-400">{waitlistCount.toLocaleString()}</span> on the waitlist
-                  <span className="text-xs text-muted-foreground cursor-help" title="This is an estimated count. Live data will be available soon.">
-                    <Info size={14} />
-                  </span>
-                  <div className="flex -space-x-2">
-                    <div className="h-6 w-6 rounded-full bg-emerald-800 border-2 border-background"></div>
-                    <div className="h-6 w-6 rounded-full bg-emerald-700 border-2 border-background"></div>
-                    <div className="h-6 w-6 rounded-full bg-emerald-600 border-2 border-background"></div>
+
+                {/* For Hosts */}
+                <div className="hud-panel p-8 rounded-xl transition-all duration-300 hover:shadow-hud-active group">
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="p-3 bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 rounded-lg border border-emerald-400/30">
+                      <CloudCog className="h-8 w-8 text-emerald-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-white font-mono">For Server Hosts</h3>
+                      <p className="text-muted-foreground">Player recruitment tools</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="glass p-6 rounded-lg relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-emerald-500" />
+                      <h4 className="font-bold text-xl text-emerald-400 mb-4 font-mono">How We Help:</h4>
+                      <ul className="space-y-3">
+                        <li className="flex gap-3">
+                          <div className="w-2 h-2 rounded-full bg-emerald-400 mt-2 flex-shrink-0" />
+                          <p><span className="font-semibold text-emerald-300">Better Visibility:</span> Get discovered by players looking for your server type</p>
+                        </li>
+                        <li className="flex gap-3">
+                          <div className="w-2 h-2 rounded-full bg-emerald-400 mt-2 flex-shrink-0" />
+                          <p><span className="font-semibold text-emerald-300">Player Insights:</span> See reputation scores, play styles, and compatibility before inviting</p>
+                        </li>
+                        <li className="flex gap-3">
+                          <div className="w-2 h-2 rounded-full bg-emerald-400 mt-2 flex-shrink-0" />
+                          <p><span className="font-semibold text-emerald-300">Community Tools:</span> Built-in moderation features and community guidelines</p>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -122,98 +209,129 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Problems & Solutions Section */}
-        <section id="challenges" className="relative py-20 md:py-32 bg-gradient-to-bl from-background via-emerald-950/5 to-background/80">
+        {/* How It Works */}
+        <section id="how-it-works" className="py-20 md:py-32 relative">
           <div className="w-full px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16 max-w-3xl mx-auto">
-              <Badge className="mb-4 bg-emerald-600 text-white hover:bg-emerald-700">Challenges We Address</Badge>
-              <h2 className="text-3xl md:text-5xl font-bold mb-6">Building Better Server Experiences</h2>
-              <p className="text-muted-foreground text-lg">
-                We&apos;re focused on overcoming common hurdles in Minecraft server communities to enhance the experience for everyone.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-12 mt-12">
-              {/* For Players */}
-              <div className="bg-black/40 backdrop-blur-sm rounded-xl p-8 border border-emerald-900/50 shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all duration-300 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)]">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="p-3 bg-emerald-950 rounded-lg">
-                    <svg className="h-8 w-8 text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-white">For Players</h3>
-                    <p className="text-muted-foreground">Enhancing your server discovery journey</p>
-                  </div>
-                </div>
-
-                <div className="space-y-8">
-                  <div className="bg-emerald-950/50 p-6 rounded-lg border border-emerald-900/50 relative">
-                    <div className="absolute -top-3 -left-3 p-1.5 bg-emerald-700 rounded-md">
-                      <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
-                    </div>
-                    <h4 className="font-bold text-xl text-emerald-400 mb-3">Our Solutions:</h4>
-                    <ul className="space-y-4">
-                      <li className="flex gap-3">
-                        <div className="h-6 w-6 rounded-full bg-emerald-900 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <svg className="h-3.5 w-3.5 text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
-                        </div>
-                        <p><span className="font-semibold">Never guess again:</span> See real-time uptime & history for active servers.</p>
-                      </li>
-                      <li className="flex gap-3">
-                        <div className="h-6 w-6 rounded-full bg-emerald-900 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <svg className="h-3.5 w-3.5 text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
-                        </div>
-                        <p><span className="font-semibold">Pinpoint your match:</span> Filter by player count, playstyle, game mode, and more.</p>
-                      </li>
-                      <li className="flex gap-3">
-                        <div className="h-6 w-6 rounded-full bg-emerald-900 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <svg className="h-3.5 w-3.5 text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
-                        </div>
-                        <p><span className="font-semibold">Trust genuine experiences:</span> Choose based on feedback from real players with active playtime.</p>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-16">
+                <Badge className="mb-4 bg-emerald-500/20 text-emerald-400 border-emerald-400/30 font-mono uppercase">How It Works</Badge>
+                <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white hud-text-glow">Three Simple Steps</h2>
+                <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+                  A straightforward process to connect trusted players with the right Minecraft communities.
+                </p>
               </div>
 
-              {/* For Hosts */}
-              <div className="bg-black/40 backdrop-blur-sm rounded-xl p-8 border border-emerald-900/50 shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all duration-300 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)]">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="p-3 bg-emerald-950 rounded-lg">
-                    <svg className="h-8 w-8 text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-white">For Hosts</h3>
-                    <p className="text-muted-foreground">Build Your Dream Community, Confidently</p>
-                  </div>
-                </div>
-
-                <div className="space-y-8">
-                  <div className="bg-emerald-950/50 p-6 rounded-lg border border-emerald-900/50 relative">
-                    <div className="absolute -top-3 -left-3 p-1.5 bg-emerald-700 rounded-md">
-                      <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+              <div className="relative">
+                <div className="absolute left-1/2 -translate-x-1/2 h-full w-1 bg-gradient-to-b from-emerald-400/30 via-emerald-400/50 to-emerald-400/30 hidden md:block" />
+                
+                <div className="space-y-16 relative">
+                  {/* Phase 1 */}
+                  <div ref={refStep1} className="grid md:grid-cols-2 gap-8 items-center">
+                    <div className="order-2 md:order-1">
+                      {inViewStep1 && (
+                        <div className="hud-panel p-8 rounded-xl transition-all duration-300 hover:shadow-hud-active relative">
+                          <div className="absolute top-6 -right-4 md:right-auto md:-left-4 h-12 w-12 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white flex items-center justify-center font-bold shadow-glow font-mono text-lg">01</div>
+                          <h3 className="text-2xl font-bold mb-4 text-white font-mono">Verify Your Identity</h3>
+                          <p className="text-muted-foreground mb-6">
+                            Connect your Microsoft account to establish a trusted profile. This ensures all players are real and builds community confidence.
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <div className="flex items-center gap-2 glass p-3 rounded">
+                              <Shield className="h-4 w-4 text-emerald-400" />
+                              <span>Microsoft Account Link</span>
+                            </div>
+                            <div className="flex items-center gap-2 glass p-3 rounded">
+                              <UserCog className="h-4 w-4 text-emerald-400" />
+                              <span>Profile Setup</span>
+                            </div>
+                            <div className="flex items-center gap-2 glass p-3 rounded">
+                              <Activity className="h-4 w-4 text-emerald-400" />
+                              <span>Privacy Settings</span>
+                            </div>
+                            <div className="flex items-center gap-2 glass p-3 rounded">
+                              <Star className="h-4 w-4 text-emerald-400" />
+                              <span>Initial Reputation</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <h4 className="font-bold text-xl text-emerald-400 mb-3">Our Solutions:</h4>
-                    <ul className="space-y-4">
-                      <li className="flex gap-3">
-                        <div className="h-6 w-6 rounded-full bg-emerald-900 flex items-center justify-center flex-shrink-0 mt-0.5">
-                         <svg className="h-3.5 w-3.5 text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    <div className="order-1 md:order-2 flex justify-center">
+                      <div className="relative w-48 h-48 hud-panel rounded-2xl flex items-center justify-center">
+                        <UserCog className="h-20 w-20 text-emerald-400" />
+                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-400/20 to-transparent" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Phase 2 */}
+                  <div ref={refStep2} className="grid md:grid-cols-2 gap-8 items-center">
+                    <div className="flex justify-center">
+                      <div className="relative w-48 h-48 hud-panel rounded-2xl flex items-center justify-center">
+                        <Scale className="h-20 w-20 text-emerald-400" />
+                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-400/20 to-transparent" />
+                      </div>
+                    </div>
+                    <div>
+                      {inViewStep2 && (
+                        <div className="hud-panel p-8 rounded-xl transition-all duration-300 hover:shadow-hud-active relative">
+                          <div className="absolute top-6 -left-4 h-12 w-12 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white flex items-center justify-center font-bold shadow-glow font-mono text-lg">02</div>
+                          <h3 className="text-2xl font-bold mb-4 text-white font-mono">Build Your Reputation</h3>
+                          <p className="text-muted-foreground mb-6">
+                            Earn trust through positive interactions with servers and players. Fair, transparent feedback system that prevents gaming.
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <div className="flex items-center gap-2 glass p-3 rounded">
+                              <Scale className="h-4 w-4 text-emerald-400" />
+                              <span>Fair Feedback</span>
+                            </div>
+                            <div className="flex items-center gap-2 glass p-3 rounded">
+                              <Shield className="h-4 w-4 text-emerald-400" />
+                              <span>Anti-Gaming Protection</span>
+                            </div>
+                          </div>
                         </div>
-                        <p><span className="font-semibold">Attract dedicated players:</span> Showcase your world feats with premium visibility.</p>
-                      </li>
-                      <li className="flex gap-3">
-                        <div className="h-6 w-6 rounded-full bg-emerald-900 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <svg className="h-3.5 w-3.5 text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Phase 3 */}
+                  <div ref={refStep3} className="grid md:grid-cols-2 gap-8 items-center">
+                    <div className="order-2 md:order-1">
+                      {inViewStep3 && (
+                        <div className="hud-panel p-8 rounded-xl transition-all duration-300 hover:shadow-hud-active relative">
+                          <div className="absolute top-6 -right-4 md:right-auto md:-left-4 h-12 w-12 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white flex items-center justify-center font-bold shadow-glow font-mono text-lg">03</div>
+                          <h3 className="text-2xl font-bold mb-4 text-white font-mono">Connect & Play</h3>
+                          <p className="text-muted-foreground mb-6">
+                            Find the perfect match through smart recommendations. Trial periods ensure good fits before long-term commitments.
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <div className="flex items-center gap-2 glass p-3 rounded">
+                              <Target className="h-4 w-4 text-emerald-400" />
+                              <span>Smart Matching</span>
+                            </div>
+                            <div className="flex items-center gap-2 glass p-3 rounded">
+                              <Handshake className="h-4 w-4 text-emerald-400" />
+                              <span>Trial Periods</span>
+                            </div>
+                            <div className="flex items-center gap-2 glass p-3 rounded">
+                              <Activity className="h-4 w-4 text-emerald-400" />
+                              <span>Progress Tracking</span>
+                            </div>
+                            <div className="flex items-center gap-2 glass p-3 rounded">
+                              <Scale className="h-4 w-4 text-emerald-400" />
+                              <span>Mutual Reviews</span>
+                            </div>
+                          </div>
                         </div>
-                        <p><span className="font-semibold">Recruit with insight:</span> Choose the right players using a reputation system, tags, and verified history.</p>
-                      </li>
-                      <li className="flex gap-3">
-                        <div className="h-6 w-6 rounded-full bg-emerald-900 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <svg className="h-3.5 w-3.5 text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
-                        </div>
-                        <p><span className="font-semibold">Cultivate respect:</span> Set rules and behavior agreements, and see them followed.</p>
-                      </li>
-                    </ul>
+                      )}
+                    </div>
+                    <div className="order-1 md:order-2 flex justify-center">
+                      <div className="relative w-48 h-48 hud-panel rounded-2xl flex items-center justify-center">
+                        <Handshake className="h-20 w-20 text-emerald-400" />
+                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-400/20 to-transparent" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -221,189 +339,122 @@ export default function Home() {
           </div>
         </section>
 
-        {/* How It Works Section */}
-        <section id="how-it-works" className="py-20 md:py-32 bg-gradient-to-tr from-background/80 via-emerald-950/5 to-background">
+        {/* Core Systems */}
+        <section id="features" className="relative py-20 md:py-32">
+          <AnimatedGridBackground variant="dense" />
+          
           <div className="w-full px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16 max-w-3xl mx-auto">
-              <Badge className="mb-4 bg-emerald-900 text-white hover:bg-emerald-800">Process</Badge>
-              <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">How It Works</h2>
-              <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
-                A simple three-step process designed to create better Minecraft communities through trust and transparency.
-              </p>
-            </div>
-
-            <div className="relative">
-              <div className="absolute left-1/2 -translate-x-1/2 h-full w-2 bg-emerald-900/30 hidden md:block"></div>
-              <div className="space-y-20 relative">
-                {/* Step 1 */}
-                <div ref={refStep1} className="grid md:grid-cols-2 gap-8 items-center">
-                  <div className="order-2 md:order-1">
-                    {inViewStep1 && (
-                      <div className="bg-black/40 backdrop-blur-sm p-8 rounded-xl border border-emerald-900/50 shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all duration-300 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)] relative animate-fade-in">
-                        <div className="absolute top-6 -right-4 md:right-auto md:-left-4 h-10 w-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold shadow-lg">1</div>
-                        <h3 className="text-2xl font-bold mb-4 text-white">1. Build Your Verified Identity</h3>
-                        <p className="text-muted-foreground mb-4">
-                          Integration with Microsoft account to confirm authenticity and establish your identity in the community, so you connect with real, passionate players and hosts.
-                        </p>
-                        <ul className="space-y-2 text-sm">
-                          <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div><span>Verified Minecraft accounts only</span></li>
-                          <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div><span>Customizable player/server profiles</span></li>
-                          <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div><span>Privacy controls for your information</span></li>
-                        </ul>
+            <div className="max-w-7xl mx-auto">
+              <div className="text-center mb-16">
+                <Badge className="mb-4 bg-emerald-500/20 text-emerald-400 border-emerald-400/30 font-mono uppercase">Features</Badge>
+                <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white hud-text-glow">What You Get</h2>
+                <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+                  Tools designed to make finding and managing Minecraft communities easier and safer.
+                </p>
+              </div>
+              
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[
+                  {
+                    icon: Shield,
+                    title: "Your Reputation Passport",
+                    description: "Build trust that follows you everywhere. Your reputation works across all ServerHeaven servers."
+                  },
+                  {
+                    icon: Zap,
+                    title: "Show Your Skills", 
+                    description: "Upload builds, timelapses, and creations to attract servers that match your playstyle."
+                  },
+                  {
+                    icon: Target,
+                    title: "Smart Discovery",
+                    description: "Find servers that fit your preferences, schedule, and gaming style through intelligent matching."
+                  }
+                ].map((feature, index) => (
+                  <div key={index} className="hud-panel p-6 rounded-xl transition-all duration-300 hover:shadow-hud-active group">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 rounded-lg border border-emerald-400/30">
+                        <feature.icon className="h-6 w-6 text-emerald-400" />
                       </div>
-                    )}
-                  </div>
-                  <div className="order-1 md:order-2 flex justify-center">
-                    <div className="relative w-[200px] h-[200px] rounded-xl overflow-hidden border-4 border-emerald-900/50 shadow-[0_0_30px_rgba(16,185,129,0.2)] flex items-center justify-center bg-black/30">
-                      <UserCog className="h-16 w-16 md:h-24 md:w-24 text-emerald-500" />
+                      <h3 className="text-xl text-white font-semibold font-mono">{feature.title}</h3>
                     </div>
+                    <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
                   </div>
-                </div>
-                {/* Step 2 */}
-                <div ref={refStep2} className="grid md:grid-cols-2 gap-8 items-center">
-                  <div className="flex justify-center">
-                    <div className="relative w-[200px] h-[200px] rounded-xl overflow-hidden border-4 border-emerald-900/50 shadow-[0_0_30px_rgba(16,185,129,0.2)] flex items-center justify-center bg-black/30">
-                      <Scale className="h-16 w-16 md:h-24 md:w-24 text-emerald-500" />
-                    </div>
-                  </div>
-                  <div>
-                    {inViewStep2 && (
-                      <div className="bg-black/40 backdrop-blur-sm p-8 rounded-xl border border-emerald-900/50 shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all duration-300 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)] relative animate-fade-in">
-                        <div className="absolute top-6 -left-4 h-10 w-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold shadow-lg">2</div>
-                        <h3 className="text-2xl font-bold mb-4 text-white">2. Shape a Fair Community</h3>
-                        <p className="text-muted-foreground mb-4">
-                          "Upvote + flags" system linked to server logs creates a transparent reputation system for both players and hosts, empowering everyone to maintain high standards.
-                        </p>
-                        <ul className="space-y-2 text-sm">
-                          <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div><span>Evidence-based reputation system</span></li>
-                          <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div><span>Dispute resolution for unfair ratings</span></li>
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {/* Step 3 */}
-                <div ref={refStep3} className="grid md:grid-cols-2 gap-8 items-center">
-                  <div className="order-2 md:order-1">
-                    {inViewStep3 && (
-                      <div className="bg-black/40 backdrop-blur-sm p-8 rounded-xl border border-emerald-900/50 shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all duration-300 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)] relative animate-fade-in">
-                        <div className="absolute top-6 -right-4 md:right-auto md:-left-4 h-10 w-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold shadow-lg">3</div>
-                        <h3 className="text-2xl font-bold mb-4 text-white">3. Connect with Confidence</h3>
-                        <p className="text-muted-foreground mb-4">
-                          Platform-generated invites and requests create safe connections, with mutual evaluation ensuring a great fit for everyone involved.
-                        </p>
-                         <ul className="space-y-2 text-sm">
-                          <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div><span>Secure whitelist and ban management</span></li>
-                          <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div><span>Trial period with clear expectations</span></li>
-                          <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div><span>Two-way feedback after trial completion</span></li>
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                  <div className="order-1 md:order-2 flex justify-center">
-                    <div className="relative w-[200px] h-[200px] rounded-xl overflow-hidden border-4 border-emerald-900/50 shadow-[0_0_30px_rgba(16,185,129,0.2)] flex items-center justify-center bg-black/30">
-                      <Handshake className="h-16 w-16 md:h-24 md:w-24 text-emerald-500" />
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
         </section>
 
-        {/* Features Section */}
-        <section id="features" className="relative py-20 md:py-32 bg-gradient-to-br from-background via-emerald-950/5 to-background/90">
-          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-emerald-950/30 to-transparent pointer-events-none"></div>
-          <div className="w-full px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16 max-w-3xl mx-auto">
-              <Badge className="mb-4 bg-emerald-900 text-white hover:bg-emerald-800">Features</Badge>
-              <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">Our Core Features</h2>
-              <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
-                Tools designed specifically for Minecraft communities to build trust and create better experiences.
-              </p>
-            </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-black/40 backdrop-blur-sm border-emerald-900/50 shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all duration-300 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)] hover:-translate-y-1 rounded-lg border p-5">
-                <div className="pb-2">
-                  <svg className="h-10 w-10 text-emerald-500 mb-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
-                  <h3 className="text-xl text-white font-semibold">Your Reputation, Your Passport</h3>
-                </div>
-                <div><p className="text-muted-foreground">Carry your trust score and history to any ServerHeaven server.</p></div>
-              </div>
-              <div className="bg-black/40 backdrop-blur-sm border-emerald-900/50 shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all duration-300 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)] hover:-translate-y-1 rounded-lg border p-5">
-                <div className="pb-2">
-                  <svg className="h-10 w-10 text-emerald-500 mb-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-                  <h3 className="text-xl text-white font-semibold">Showcase Your Genius</h3>
-                </div>
-                <div><p className="text-muted-foreground">Inspire and be inspired with your portfolio of builds, timelapses, and schematics.</p></div>
-              </div>
-              <div className="bg-black/40 backdrop-blur-sm border-emerald-900/50 shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all duration-300 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)] hover:-translate-y-1 rounded-lg border p-5">
-                <div className="pb-2">
-                  <svg className="h-10 w-10 text-emerald-500 mb-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                  <h3 className="text-xl text-white font-semibold">Find Your Tribe</h3>
-                </div>
-                <div><p className="text-muted-foreground">Connect with players and servers that match your unique playstyle and interests.</p></div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Pricing/Boosts Section */}
-        <section className="relative py-20 md:py-32 bg-gradient-to-b from-emerald-950/30 via-emerald-950/20 to-emerald-950/50">
-          <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-background/70 to-transparent pointer-events-none"></div>
-          <div className="w-full px-4 sm:px-6 lg:px-8 max-w-7xl">
-            <div className="text-center mb-16 max-w-3xl mx-auto">
-              <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">Free For All</h2>
-              <p className="text-center text-lg mb-16 max-w-3xl mx-auto text-muted-foreground">
-                ServerHeaven is completely free because we believe every Minecraft enthusiast deserves a safe and rewarding multiplayer experience. Our mission is to empower players and hosts to build thriving communities founded on trust, transparency, and a shared passion for the game.
+        {/* Mission Statement */}
+        <section className="relative py-20 md:py-32">
+          <div className="w-full px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+            <div className="text-center space-y-8">
+              <h2 className="text-3xl md:text-5xl font-bold text-white hud-text-glow">Free For Everyone</h2>
+              <p className="text-xl text-gray-300 leading-relaxed">
+                ServerHeaven is <span className="text-emerald-400 font-semibold">completely free</span> because 
+                every Minecraft player deserves access to trusted communities. Our mission is to eliminate the guesswork 
+                and create safer connections through <span className="text-emerald-400 font-semibold">transparency</span>, 
+                <span className="text-emerald-400 font-semibold"> verified players</span>, and 
+                <span className="text-emerald-400 font-semibold"> honest feedback</span>.
               </p>
             </div>
           </div>
         
           {/* Final CTA */}
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-7xl">
-            <Badge className="mb-6 bg-emerald-900 text-white hover:bg-emerald-800">Join Us</Badge>
-            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">Ready to find your ideal server?</h2>
-            <p className="text-lg mb-8 max-w-2xl mx-auto text-muted-foreground">
-              Join the waitlist and be one of the first to experience ServerHeaven – where your perfect Minecraft community is just a few clicks away.
-            </p>
-            <Button
-              variant="outline"
-              size="lg"
-              className="bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500 hover:border-emerald-400"
-              onClick={openLoginModal}
-            >
-              Login to Join Waitlist
-            </Button>
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-4xl mt-16">
+            <div className="hud-panel p-12 rounded-2xl">
+              <Badge className="mb-6 bg-emerald-500/20 text-emerald-400 border-emerald-400/30 font-mono uppercase">Join The Community</Badge>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white hud-text-glow">Ready to Get Started?</h2>
+              <p className="text-lg mb-8 max-w-2xl mx-auto text-muted-foreground">
+                Join the waitlist and get early access to ServerHeaven&apos;s smart matchmaking for Minecraft communities.
+              </p>
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold shadow-glow-lg uppercase tracking-wider"
+                onClick={openLoginModal}
+              >
+                Join Beta Access
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </div>
           </div>
         </section>
 
-        {/* Footer */}
-        <footer className="py-12 border-t border-emerald-900/20 bg-black/40">
+        {/* HUD Footer */}
+        <footer className="py-12 border-t border-emerald-400/20 hud-panel">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="flex items-center gap-2 mb-6 md:mb-0">
-                <div className="relative h-8 w-8 overflow-hidden rounded-md bg-emerald-600 flex items-center justify-center">
-                  <CloudCog className="h-7 w-7 text-white" />
+              <div className="flex items-center gap-3 mb-6 md:mb-0">
+                <div className="relative h-10 w-10 overflow-hidden rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-glow-sm">
+                  <CloudCog className="h-6 w-6 text-white" />
                 </div>
-                <span className="font-bold text-white">ServerHeaven.co</span>
+                <span className="font-bold text-white font-mono hud-text-glow">
+                  SERVER<span className="text-emerald-400">HEAVEN</span>
+                </span>
               </div>
-              <div className="flex gap-6 mb-6 md:mb-0">
-                <Link href="/terms" className="text-sm text-muted-foreground hover:text-emerald-400 transition-colors">
+              
+              <div className="flex gap-8 mb-6 md:mb-0">
+                <Link href="/terms" className="text-sm text-muted-foreground hover:text-emerald-400 transition-colors font-mono uppercase tracking-wider">
                   Terms
                 </Link>
-                <Link href="/privacy" className="text-sm text-muted-foreground hover:text-emerald-400 transition-colors">
+                <Link href="/privacy" className="text-sm text-muted-foreground hover:text-emerald-400 transition-colors font-mono uppercase tracking-wider">
                   Privacy
+                </Link>
+                <Link href="/docs" className="text-sm text-muted-foreground hover:text-emerald-400 transition-colors font-mono uppercase tracking-wider">
+                  Documentation
                 </Link>
               </div>
             </div>
-            <div className="mt-8 text-center text-xs text-muted-foreground">
-              <p>Made by Minecraft fans — © {new Date().getFullYear()}, not affiliated with Mojang/Microsoft.</p>
+            
+            <div className="mt-8 pt-8 border-t border-emerald-400/20 text-center">
+              <p className="text-xs text-muted-foreground font-mono">
+                <span className="text-emerald-400">MINECRAFT COMMUNITY PLATFORM</span> — © {new Date().getFullYear()} — Independent of Mojang/Microsoft
+              </p>
             </div>
           </div>
         </footer>
       </div>
-      {/* <LoginModal isOpen={showLoginModal} setIsOpen={setShowLoginModal} onSuccess={handleLoginSuccess} /> */}
     </>
   );
 }
