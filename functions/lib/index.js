@@ -32,6 +32,9 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -89,5 +92,9 @@ app.post("/seed", async (req, res) => {
         res.status(500).send({ success: false, message: "Failed to seed database." });
     }
 });
+__exportStar(require("./servers"), exports);
+__exportStar(require("./reviews"), exports);
+__exportStar(require("./posts"), exports);
+__exportStar(require("./beta"), exports);
 exports.api = (0, https_1.onRequest)(app);
 //# sourceMappingURL=index.js.map

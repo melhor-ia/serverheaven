@@ -2,7 +2,9 @@
 
 import React, { useState } from 'react';
 import { Button } from './ui/Button';
-import { X, ArrowLeft, Star } from 'lucide-react';
+import { X, ArrowLeft, Star, Loader2 } from 'lucide-react';
+import { functions } from '@/lib/firebase-config';
+import { httpsCallable } from 'firebase/functions';
 
 interface BetaSignupModalProps {
   isOpen: boolean;
@@ -13,6 +15,8 @@ export const BetaSignupModal: React.FC<BetaSignupModalProps> = ({ isOpen, onClos
   const [step, setStep] = useState(1);
   const [choice, setChoice] = useState<string | null>(null);
   const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -31,14 +35,27 @@ export const BetaSignupModal: React.FC<BetaSignupModalProps> = ({ isOpen, onClos
         setStep(1);
         setChoice(null);
         setEmail('');
+        setError(null);
+        setIsSubmitting(false);
     }, 300);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Later: implement actual submission logic
-    console.log({ choice, email });
-    setStep(3);
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const betaSignup = httpsCallable(functions, 'betaSignup');
+      await betaSignup({ email, choice });
+      setStep(3);
+    } catch (err) {
+      const error = err as { message?: string };
+      console.error("Error signing up:", error);
+      setError(error.message || "An unexpected error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -105,6 +122,7 @@ export const BetaSignupModal: React.FC<BetaSignupModalProps> = ({ isOpen, onClos
                   required
                   placeholder="you@example.com"
                   className="w-full bg-black/30 border border-emerald-400/30 rounded-md p-3 text-white placeholder-muted-foreground focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition-all"
+                  disabled={isSubmitting}
                 />
                 <p className="text-xs text-muted-foreground mt-2">
                   {choice === 'feedback'
@@ -112,13 +130,15 @@ export const BetaSignupModal: React.FC<BetaSignupModalProps> = ({ isOpen, onClos
                     : "We respect your privacy. This is for a one-time release notification only. No spam."
                   }
                 </p>
+                {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold shadow-glow uppercase tracking-wider"
+                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold shadow-glow uppercase tracking-wider flex items-center justify-center"
+                disabled={isSubmitting}
               >
-                Get Notified
+                {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Get Notified"}
               </Button>
             </form>
           </div>

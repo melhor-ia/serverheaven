@@ -55,4 +55,8 @@ app.post("/seed", async (req, res) => {
 });
 
 export { onUserCreate, onReviewCreate };
+export * from "./servers";
+export * from "./reviews";
+export * from "./posts";
+export * from "./beta";
 export const api = onRequest(app);

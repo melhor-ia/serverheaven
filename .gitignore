@@ -80,3 +80,5 @@ platforms/web/.next
 
 # Local environment variables
 platforms/web/.env.local
+
+.runtimeconfig.json

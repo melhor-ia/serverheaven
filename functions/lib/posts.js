@@ -1,6 +1,5 @@
 "use strict";
-// Implementa /purpleStone/_legacy/Modelagem de Dados.md (Post)
-// Relacionado a /purpleStone/_legacy/Fluxos Principais de Usuário e API.md
+// Implementa /purpleStone/Sistema de Posts e Feed.md
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
