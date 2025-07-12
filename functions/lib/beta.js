@@ -218,7 +218,7 @@ exports.betaSignup = functions.https.onCall(async (request) => {
         const functionsUrl = process.env.FUNCTIONS_EMULATOR === "true"
             ? `http://127.0.0.1:5001/${process.env.GCLOUD_PROJECT}/us-central1`
             : "https://us-central1-your-production-project.cloudfunctions.net";
-        const confirmationLink = `${frontendUrl}/profile/create?token=${token}`;
+        const confirmationLink = `${frontendUrl}/beta/setup?token=${token}`;
         const unsubscribeLink = `${functionsUrl}/unsubscribe?token=${token}`;
         const isFeedback = choice === "feedback";
         const mailOptions = {
