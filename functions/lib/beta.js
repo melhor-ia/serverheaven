@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.unsubscribe = exports.verifyBetaToken = exports.betaSignup = void 0;
+exports.completeBetaProfile = exports.unsubscribe = exports.verifyBetaToken = exports.betaSignup = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const nodemailer = __importStar(require("nodemailer"));
@@ -308,6 +308,66 @@ exports.unsubscribe = functions.https.onRequest(async (req, res) => {
     catch (error) {
         console.error("Error in unsubscribe function:", error);
         res.status(500).send("An unexpected error occurred. Please try again later.");
+    }
+});
+/**
+ * # Implementa /purpleStone/Sistema de Autenticação e Perfis.md
+ * Completes the beta profile setup by linking the beta access entry
+ * to a newly created Firebase Auth user and saving their preferences.
+ */
+exports.completeBetaProfile = functions.https.onCall(async (request) => {
+    const { token, uid, contribution, discordUsername } = request.data;
+    // --- Input Validation ---
+    if (!token || typeof token !== "string") {
+        throw new functions.https.HttpsError("invalid-argument", "A valid token is required.");
+    }
+    if (!uid || typeof uid !== "string") {
+        throw new functions.https.HttpsError("invalid-argument", "A valid user ID is required.");
+    }
+    if (!contribution || !Array.isArray(contribution) || contribution.length === 0) {
+        throw new functions.https.HttpsError("invalid-argument", "Contribution preferences are required.");
+    }
+    try {
+        // --- Verify Beta Token ---
+        const accessQuery = await db.collection("beta-access").where("confirmationToken", "==", token).limit(1).get();
+        if (accessQuery.empty) {
+            throw new functions.https.HttpsError("not-found", "This invitation is invalid or has already been used.");
+        }
+        const docRef = accessQuery.docs[0].ref;
+        const docData = accessQuery.docs[0].data();
+        if (docData.status !== "pending") {
+            throw new functions.https.HttpsError("failed-precondition", `This invitation has already been ${docData.status}.`);
+        }
+        if (docData.tokenExpiresAt.toDate() < new Date()) {
+            await docRef.update({ status: "expired" });
+            throw new functions.https.HttpsError("deadline-exceeded", "This invitation has expired.");
+        }
+        // --- Verify Auth User ---
+        const authUser = await admin.auth().getUser(uid);
+        if (authUser.email !== docData.email) {
+            throw new functions.https.HttpsError("permission-denied", "The authenticated user email does not match the invitation email.");
+        }
+        // --- Update Firestore Document ---
+        await docRef.update({
+            status: "completed",
+            completedAt: firestore_1.FieldValue.serverTimestamp(),
+            uid: authUser.uid,
+            contribution,
+            discordUsername: discordUsername || null, // Store null if empty string
+            // Clear token info for security
+            confirmationToken: firestore_1.FieldValue.delete(),
+            tokenExpiresAt: firestore_1.FieldValue.delete(),
+        });
+        // --- Set a custom claim for the user ---
+        await admin.auth().setCustomUserClaims(authUser.uid, { betaPioneer: true });
+        return { success: true, message: "Beta profile completed successfully." };
+    }
+    catch (error) {
+        console.error("Error in completeBetaProfile:", error);
+        if (error instanceof functions.https.HttpsError) {
+            throw error; // Re-throw HttpsError exceptions
+        }
+        throw new functions.https.HttpsError("internal", "An unexpected error occurred while completing the profile.");
     }
 });
 //# sourceMappingURL=beta.js.map
