@@ -1,3 +1,4 @@
+// Documentado em /purpleStone/Sistema de Acesso Beta.md
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import * as nodemailer from "nodemailer";

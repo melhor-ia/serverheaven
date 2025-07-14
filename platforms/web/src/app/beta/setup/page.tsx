@@ -1,3 +1,4 @@
+// Documentado em /purpleStone/Sistema de Acesso Beta.md
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -9,8 +10,12 @@ import { useSearchParams } from 'next/navigation';
 import { auth, functions } from '@/lib/firebase-config';
 import { httpsCallable, HttpsCallableResult } from 'firebase/functions';
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+<<<<<<< HEAD
 import { DiscordIcon } from '../../components/ui/DiscordIcon';
 import Link from 'next/link';
+=======
+import { FcGoogle } from 'react-icons/fc';
+>>>>>>> 1d53785 (feat doc for beta)
 
 interface VerifyTokenResponse {
     success: boolean;
@@ -196,20 +201,17 @@ const AuthStep = ({ handleEmailPasswordSubmit, handleGoogleSignIn, password, set
                 variant="outline"
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
-                className="w-full font-bold group transition-all duration-300 shadow-glow-lg uppercase tracking-wider"
+                className="w-full font-bold group transition-all duration-300 shadow-glow-lg uppercase tracking-wider flex items-center justify-center"
             >
-                <svg className="w-5 h-5 mr-3" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Google</title><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.02-2.37 1.62-3.82 1.62-4.66 0-8.44-3.72-8.44-8.32s3.78-8.32 8.44-8.32c2.48 0 4.38.92 5.58 2.08L21.5 4.82C19.36 2.84 16.3 1.5 12.48 1.5 7 1.5 2.94 5.5 2.94 10.98s4.06 9.48 9.54 9.48c2.82 0 5.26-.94 7.08-2.76 1.94-1.94 2.58-4.58 2.58-7.72 0-.64-.06-1.22-.18-1.78Z" fill="currentColor"/></svg>
+                <FcGoogle className="w-6 h-6 mr-3" />
                 Sign In with Google
             </Button>
-            <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-border" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground font-mono">
-                        Or create a password
-                    </span>
-                </div>
+            <div className="flex items-center my-6">
+                <div className="flex-grow border-t border-border" />
+                <span className="flex-shrink mx-4 text-xs uppercase text-muted-foreground font-mono">
+                    Or create a password
+                </span>
+                <div className="flex-grow border-t border-border" />
             </div>
         </div>
 
@@ -319,7 +321,6 @@ export default function BetaProfileSetup() {
     const [error, setError] = useState<string | null>(null);
     const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
     const searchParams = useSearchParams();
-    const [scrollY, setScrollY] = useState(0);
 
     useEffect(() => {
         const tokenFromUrl = searchParams.get('token');
@@ -339,15 +340,6 @@ export default function BetaProfileSetup() {
             setIsValidToken(false);
         }
     }, [searchParams]);
-
-    useEffect(() => {
-        const updateScrollY = () => {
-            setScrollY(window.scrollY);
-        };
-        updateScrollY(); // Set initial scroll position
-        window.addEventListener('scroll', updateScrollY);
-        return () => window.removeEventListener('scroll', updateScrollY);
-    }, []);
 
     const handleContributionChange = (value: string) => {
         setContribution(prev => 
@@ -491,10 +483,9 @@ export default function BetaProfileSetup() {
     }
     
     return (
-        <div className="relative min-h-screen w-full bg-background text-foreground overflow-y-auto">
+        <div className="relative min-h-screen w-full bg-background text-foreground overflow-y-auto overflow-x-hidden">
             <div
                 className="absolute inset-0 z-0"
-                style={{ transform: `translateY(${scrollY * 0.1}px)` }}
             >
                 <AnimatedGridBackground variant="sparse" />
             </div>

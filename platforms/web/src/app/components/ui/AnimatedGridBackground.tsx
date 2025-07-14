@@ -1,14 +1,46 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface AnimatedGridBackgroundProps {
   className?: string;
   variant?: 'default' | 'dense' | 'sparse';
+  animationType?: 'default' | 'fps';
 }
 
-export function AnimatedGridBackground({ className = "", variant = 'default' }: AnimatedGridBackgroundProps) {
+const Particle = ({ top, left }: { top: string, left: string }) => (
+    <div
+        className="absolute w-1 h-1 bg-emerald-400/30 rounded-full"
+        style={{ top, left }}
+    />
+);
+
+
+export function AnimatedGridBackground({ className = "", variant = 'default', animationType = 'fps' }: AnimatedGridBackgroundProps) {
   const gridSize = variant === 'dense' ? 20 : variant === 'sparse' ? 60 : 40;
+  const numParticles = 12;
+
+  const [particlePositions, setParticlePositions] = useState(() =>
+    [...Array(numParticles)].map(() => ({
+      top: `${Math.random() * 100}%`,
+      left: `${Math.random() * 100}%`,
+    }))
+  );
+
+  useEffect(() => {
+    if (animationType === 'fps') {
+      const intervalId = setInterval(() => {
+        setParticlePositions(
+          [...Array(numParticles)].map(() => ({
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+          }))
+        );
+      }, 1000); // Update all particles every 1 second (1 FPS)
+
+      return () => clearInterval(intervalId);
+    }
+  }, [animationType, numParticles]);
   
   return (
     <div className={`absolute inset-0 overflow-hidden ${className}`}>
@@ -50,18 +82,22 @@ export function AnimatedGridBackground({ className = "", variant = 'default' }: 
       
       {/* Floating particles */}
       <div className="absolute inset-0">
-        {[...Array(12)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 bg-emerald-400/30 rounded-full animate-pulse-slow"
-            style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${2 + Math.random() * 2}s`,
-            }}
-          />
-        ))}
+        {animationType === 'fps'
+          ? particlePositions.map((pos, i) => (
+              <Particle key={i} top={pos.top} left={pos.left} />
+            ))
+          : [...Array(numParticles)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-1 h-1 bg-emerald-400/30 rounded-full animate-pulse-slow"
+                style={{
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 3}s`,
+                  animationDuration: `${2 + Math.random() * 2}s`,
+                }}
+              />
+            ))}
       </div>
       
       {/* Central focus ring */}
