@@ -1,9 +1,8 @@
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
 import {Router} from "express";
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import {authenticate, AuthenticatedRequest} from "./middleware";
-import {onDocumentCreated} from "firebase-functions/v2/firestore";
 
 // Corresponds to /purpleStone/_legacy/Modelagem de Dados.md
 export interface Review {
@@ -131,59 +130,59 @@ router.get("/:targetId", async (req, res) => {
   }
 });
 
-export const onReviewCreate = onDocumentCreated("reviews/{reviewId}", (event) => {
-  const snap = event.data;
-  if (!snap) {
-    functions.logger.error("No data associated with the event", {eventId: event.id});
-    return;
-  }
+export const onReviewCreate = functions.firestore
+  .document("reviews/{reviewId}")
+  .onCreate((snap, context) => {
+    const review = snap.data() as Review;
+    if (!review) {
+      functions.logger.error("No data associated with the event", {eventId: context.eventId});
+      return;
+    }
+    const {target_server_id, target_user_id, rating} = review;
 
-  const review = snap.data() as Review;
-  const {target_server_id, target_user_id, rating} = review;
+    let targetRef;
+    if (target_server_id) {
+      targetRef = db.collection("servers").doc(target_server_id);
+    } else if (target_user_id) {
+      targetRef = db.collection("users").doc(target_user_id);
+    } else {
+      functions.logger.error("Review is missing a target ID", {reviewId: snap.id});
+      return;
+    }
 
-  let targetRef;
-  if (target_server_id) {
-    targetRef = db.collection("servers").doc(target_server_id);
-  } else if (target_user_id) {
-    targetRef = db.collection("users").doc(target_user_id);
-  } else {
-    functions.logger.error("Review is missing a target ID", {reviewId: snap.id});
-    return;
-  }
+    try {
+      return db.runTransaction(async (transaction) => {
+        const targetDoc = await transaction.get(targetRef);
+        if (!targetDoc.exists) {
+          functions.logger.error("Target document not found for review", {reviewId: snap.id});
+          return;
+        }
 
-  try {
-    return db.runTransaction(async (transaction) => {
-      const targetDoc = await transaction.get(targetRef);
-      if (!targetDoc.exists) {
-        functions.logger.error("Target document not found for review", {reviewId: snap.id});
-        return;
-      }
+        const targetData = targetDoc.data();
+        if (!targetData) {
+          functions.logger.error("Target data is empty for review", {reviewId: snap.id});
+          return;
+        }
 
-      const targetData = targetDoc.data();
-      if (!targetData) {
-        functions.logger.error("Target data is empty for review", {reviewId: snap.id});
-        return;
-      }
+        const currentRating = targetData.rating || {average: 0, count: 0};
 
-      const currentRating = targetData.rating || {average: 0, count: 0};
+        const newCount = currentRating.count + 1;
+        const newAverage = (currentRating.average * currentRating.count + rating) / newCount;
 
-      const newCount = currentRating.count + 1;
-      const newAverage = (currentRating.average * currentRating.count + rating) / newCount;
-
-      transaction.update(targetRef, {
-        rating: {
-          average: newAverage,
-          count: newCount,
-        },
+        transaction.update(targetRef, {
+          rating: {
+            average: newAverage,
+            count: newCount,
+          },
+        });
       });
-    });
-  } catch (error) {
-    functions.logger.error("Failed to update rating on transaction.", {
-      error,
-      reviewId: snap.id,
-    });
-    return;
-  }
-});
+    } catch (error) {
+      functions.logger.error("Failed to update rating on transaction.", {
+        error,
+        reviewId: snap.id,
+      });
+      return;
+    }
+  });
 
 export default router;

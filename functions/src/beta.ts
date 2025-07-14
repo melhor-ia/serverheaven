@@ -3,6 +3,12 @@ import * as admin from "firebase-admin";
 import * as nodemailer from "nodemailer";
 import * as crypto from "crypto";
 
+import { defineString, defineSecret } from 'firebase-functions/params';
+
+const GMAIL_EMAIL = defineString("GMAIL_EMAIL");
+const GMAIL_PASSWORD = defineSecret("GMAIL_PASSWORD");
+const GMAIL_FROM_ADDRESS = defineString("GMAIL_FROM_ADDRESS");
+
 // Import FieldValue directly to avoid issues with the emulator stub
 import { FieldValue } from "firebase-admin/firestore";
 
@@ -12,6 +18,22 @@ if (admin.apps.length === 0) {
 }
 
 const db = admin.firestore();
+
+// --- Helper Functions ---
+const getBaseUrls = () => {
+  const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
+  const projectId = process.env.GCLOUD_PROJECT || "server-heaven-c6fb1";
+
+  const frontendUrl = isEmulator 
+    ? "http://localhost:3000" 
+    : "https://server-heaven-c6fb1.web.app";
+    
+  const functionsUrl = isEmulator 
+    ? `http://127.0.0.1:5001/${projectId}/us-central1` 
+    : `https://us-central1-${projectId}.cloudfunctions.net`;
+
+  return { frontendUrl, functionsUrl };
+};
 
 // --- Email Templates ---
 const pioneerEmailTemplate = (confirmationLink: string, unsubscribeLink: string) => `
@@ -151,7 +173,9 @@ const notificationEmailTemplate = (unsubscribeLink: string) => `
 </html>`;
 
 
-export const betaSignup = functions.https.onCall(async (request) => {
+// Deploys a new version every time to ensure secrets are updated.
+export const betaSignup = functions.https.onCall({ secrets: [GMAIL_PASSWORD] }, async (request: functions.https.CallableRequest) => {
+  functions.logger.info("Starting betaSignup for a new user.");
   const { email, choice } = request.data;
 
   // --- Input Validation ---
@@ -190,17 +214,12 @@ export const betaSignup = functions.https.onCall(async (request) => {
       port: 465,
       secure: true, // true for 465, false for other ports
       auth: {
-        user: functions.config().gmail.email,
-        pass: functions.config().gmail.password,
+        user: GMAIL_EMAIL.value(),
+        pass: GMAIL_PASSWORD.value(),
       },
     });
     
-    // TODO: Replace with your production URLs
-    // Base URLs should be stored in environment variables for different environments (dev, prod)
-    const frontendUrl = process.env.FUNCTIONS_EMULATOR === "true" ? "http://localhost:3000" : "https://your-production-url.com";
-    const functionsUrl = process.env.FUNCTIONS_EMULATOR === "true" 
-        ? `http://127.0.0.1:5001/${process.env.GCLOUD_PROJECT}/us-central1` 
-        : "https://us-central1-your-production-project.cloudfunctions.net";
+    const { frontendUrl, functionsUrl } = getBaseUrls();
     
     const confirmationLink = `${frontendUrl}/beta/setup?token=${token}`;
     const unsubscribeLink = `${functionsUrl}/unsubscribe?token=${token}`;
@@ -208,7 +227,7 @@ export const betaSignup = functions.https.onCall(async (request) => {
     const isFeedback = choice === "feedback";
 
     const mailOptions = {
-      from: `"ServerHeaven" <${functions.config().gmail.from_address || functions.config().gmail.email}>`,
+      from: `"ServerHeaven" <${GMAIL_FROM_ADDRESS.value() || GMAIL_EMAIL.value()}>`,
       to: email,
       subject: isFeedback ? "Welcome, Pioneer! Your ServerHeaven journey begins." : "You're on the list for ServerHeaven!",
       html: isFeedback ? pioneerEmailTemplate(confirmationLink, unsubscribeLink) : notificationEmailTemplate(unsubscribeLink),
@@ -220,10 +239,15 @@ export const betaSignup = functions.https.onCall(async (request) => {
       await transporter.sendMail(mailOptions);
     }
 
+    functions.logger.info(`Successfully processed beta signup for ${email}.`);
     return { success: true, message: "Signup successful and email sent." };
 
   } catch (error) {
-    console.error("Error in betaSignup function:", error);
+    functions.logger.error("Error in betaSignup function:", {
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+      errorStack: error instanceof Error ? error.stack : undefined,
+      userEmail: email, // Be mindful of logging PII
+    });
     // TODO: Add more robust error handling/logging
     throw new functions.https.HttpsError(
       "internal",

@@ -34,12 +34,11 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.onReviewCreate = void 0;
-const functions = __importStar(require("firebase-functions"));
+const functions = __importStar(require("firebase-functions/v1"));
 const express_1 = require("express");
 const admin = __importStar(require("firebase-admin"));
 const firestore_1 = require("firebase-admin/firestore");
 const middleware_1 = require("./middleware");
-const firestore_2 = require("firebase-functions/v2/firestore");
 const router = (0, express_1.Router)();
 const db = admin.firestore();
 // POST /reviews - Create a new review
@@ -132,13 +131,14 @@ router.get("/:targetId", async (req, res) => {
         res.status(500).send({ message: "Internal Server Error" });
     }
 });
-exports.onReviewCreate = (0, firestore_2.onDocumentCreated)("reviews/{reviewId}", (event) => {
-    const snap = event.data;
-    if (!snap) {
-        functions.logger.error("No data associated with the event", { eventId: event.id });
+exports.onReviewCreate = functions.firestore
+    .document("reviews/{reviewId}")
+    .onCreate((snap, context) => {
+    const review = snap.data();
+    if (!review) {
+        functions.logger.error("No data associated with the event", { eventId: context.eventId });
         return;
     }
-    const review = snap.data();
     const { target_server_id, target_user_id, rating } = review;
     let targetRef;
     if (target_server_id) {
