@@ -1,24 +1,42 @@
 // Based on the backend interfaces
 
+export interface User {
+    id: string;
+    username: string;
+    display_name: string;
+    avatar_url: string;
+    cover_url: string;
+    bio: string;
+    tags: string[];
+    rating: {
+        average: number;
+        count: number;
+    };
+    is_supporter: boolean;
+    created_at: string;
+}
+
+export interface Server {
+    id: string;
+    name: string;
+    avatar_url: string;
+}
+
 export interface Post {
     id: string;
-    author_user_id?: string;
-    author_server_id?: string;
+    author: User;
     content: string;
-    media_urls: string[];
-    tags: string[];
-    created_at: {
-        _seconds: number;
-        _nanoseconds: number;
-    };
-    updated_at: {
-        _seconds: number;
-        _nanoseconds: number;
-    };
-    status: 'active' | 'flagged' | 'removed';
-    type: 'update' | 'event' | 'recruitment' | 'media';
-    like_count: number;
-    comment_count: number;
+    likes: number;
+    commentCount: number;
+    createdAt: Date;
+    server?: Server;
+}
+
+// Props for PostCard component
+export interface PostCardProps {
+    post: Post;
+    onLike: (postId: string) => void;
+    onComment: (postId: string) => void;
 }
 
 export interface Interaction {

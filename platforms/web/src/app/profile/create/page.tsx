@@ -386,7 +386,7 @@ const CreateProfilePage = () => {
             }
             
             await currentUser.reload(); // Refresh user to get new display name etc.
-            router.push('/feed');
+            router.push(`/profile/${currentUser.uid}`);
 
         } catch (err) {
             if (err instanceof Error) {
