@@ -13,10 +13,13 @@ if (admin.apps.length === 0) {
 interface UserDocument {
     id: string;
     username: string;
+    username_lower: string; // For case-insensitive queries
     display_name: string;
     email: string;
     avatar_url: string;
+    cover_url: string;
     bio: string;
+    tags: string[];
     rating: {
         average: number;
         count: number;
@@ -61,12 +64,34 @@ router.patch("/profile", authenticate, async (req: AuthenticatedRequest, res: Re
         return;
     }
 
-    const {displayName, bio, avatarUrl} = req.body;
+    const {displayName, bio, avatarUrl, username, tags, coverUrl} = req.body;
 
     const userProfile: {[key: string]: any} = {};
     if (displayName !== undefined) userProfile.display_name = displayName;
     if (bio !== undefined) userProfile.bio = bio;
     if (avatarUrl !== undefined) userProfile.avatar_url = avatarUrl;
+    if (coverUrl !== undefined) userProfile.cover_url = coverUrl;
+    if (tags !== undefined) {
+        if (!Array.isArray(tags) || tags.some(t => typeof t !== "string")) {
+            res.status(400).send({message: "Tags must be an array of strings."});
+            return;
+        }
+        if (tags.length > 5) {
+            res.status(400).send({message: "You can have a maximum of 5 tags."});
+            return;
+        }
+        userProfile.tags = tags;
+    }
+    if (username !== undefined) {
+        // Basic validation for username
+        if (typeof username !== "string" || username.length < 3 || username.length > 20 || !/^[a-zA-Z0-9_]+$/.test(username)) {
+            res.status(400).send({message: "Username must be 3-20 characters long and can only contain letters, numbers, and underscores."});
+            return;
+        }
+        userProfile.username = username;
+        userProfile.username_lower = username.toLowerCase();
+    }
+
 
     if (Object.keys(userProfile).length === 0) {
         res.status(400).send({message: "No fields to update"});
@@ -77,6 +102,23 @@ router.patch("/profile", authenticate, async (req: AuthenticatedRequest, res: Re
 
     try {
         const userRef = admin.firestore().collection("users").doc(userId);
+
+        // If username is being changed, check for uniqueness
+        if (userProfile.username_lower) {
+            const usernameQuery = await admin.firestore().collection("users")
+                .where("username_lower", "==", userProfile.username_lower)
+                .limit(1)
+                .get();
+
+            if (!usernameQuery.empty) {
+                const existingUser = usernameQuery.docs[0];
+                if (existingUser.id !== userId) {
+                    res.status(409).send({message: "Username is already taken."});
+                    return;
+                }
+            }
+        }
+
         await userRef.update(userProfile);
 
         const updatedUser = await userRef.get();
@@ -100,10 +142,13 @@ export const onUserCreate = functions.auth.user().onCreate(async (user: auth.Use
     const newUser = {
         id: uid,
         username: username,
+        username_lower: username.toLowerCase(),
         display_name: username,
         email: email || "",
         avatar_url: "",
+        cover_url: "",
         bio: "",
+        tags: [],
         rating: {
             average: 0,
             count: 0,

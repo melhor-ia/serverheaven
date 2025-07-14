@@ -34,6 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.completeBetaProfile = exports.unsubscribe = exports.verifyBetaToken = exports.betaSignup = void 0;
+// Documentado em /purpleStone/Sistema de Acesso Beta.md
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const nodemailer = __importStar(require("nodemailer"));

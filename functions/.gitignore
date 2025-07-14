@@ -5,5 +5,9 @@ __pycache__/
 venv/
 *.local
 .env.server-heaven-c6fb1
+<<<<<<< HEAD
 
 firebase-export-*
+=======
+firebase-export-*
+>>>>>>> accb3a2 (feat profile creation)
