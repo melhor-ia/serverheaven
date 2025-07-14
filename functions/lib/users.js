@@ -66,8 +66,8 @@ router.get("/profile/:userId", async (req, res) => {
         res.status(500).send({ message: "Internal Server Error" });
     }
 });
-// PATCH /users/profile - Update user profile
-router.patch("/profile", middleware_1.authenticate, async (req, res) => {
+// PATCH /users - Update user profile
+router.patch("/", middleware_1.authenticate, async (req, res) => {
     const userId = req.user?.uid;
     if (!userId) {
         res.status(401).send({ message: "Unauthorized" });
@@ -109,6 +109,17 @@ router.patch("/profile", middleware_1.authenticate, async (req, res) => {
     }
     userProfile.updated_at = firestore_1.FieldValue.serverTimestamp();
     try {
+        const authUpdatePayload = {};
+        if (userProfile.display_name) {
+            authUpdatePayload.displayName = userProfile.display_name;
+        }
+        if (userProfile.avatar_url) {
+            authUpdatePayload.photoURL = userProfile.avatar_url;
+        }
+        // Only update auth if there's something to update
+        if (Object.keys(authUpdatePayload).length > 0) {
+            await admin.auth().updateUser(userId, authUpdatePayload);
+        }
         const userRef = admin.firestore().collection("users").doc(userId);
         // If username is being changed, check for uniqueness
         if (userProfile.username_lower) {

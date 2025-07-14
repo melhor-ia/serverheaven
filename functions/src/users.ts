@@ -56,8 +56,8 @@ router.get("/profile/:userId", async (req: Request, res: Response) => {
     }
 });
 
-// PATCH /users/profile - Update user profile
-router.patch("/profile", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+// PATCH /users - Update user profile
+router.patch("/", authenticate, async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user?.uid;
     if (!userId) {
         res.status(401).send({message: "Unauthorized"});
@@ -101,6 +101,19 @@ router.patch("/profile", authenticate, async (req: AuthenticatedRequest, res: Re
     userProfile.updated_at = FieldValue.serverTimestamp();
 
     try {
+        const authUpdatePayload: { displayName?: string; photoURL?: string } = {};
+        if (userProfile.display_name) {
+            authUpdatePayload.displayName = userProfile.display_name;
+        }
+        if (userProfile.avatar_url) {
+            authUpdatePayload.photoURL = userProfile.avatar_url;
+        }
+
+        // Only update auth if there's something to update
+        if (Object.keys(authUpdatePayload).length > 0) {
+            await admin.auth().updateUser(userId, authUpdatePayload);
+        }
+
         const userRef = admin.firestore().collection("users").doc(userId);
 
         // If username is being changed, check for uniqueness

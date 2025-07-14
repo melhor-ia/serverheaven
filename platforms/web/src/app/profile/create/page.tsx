@@ -364,7 +364,7 @@ const CreateProfilePage = () => {
             }
 
             const token = await currentUser.getIdToken();
-            const response = await fetch(`/api/users/profile`, {
+            const response = await fetch(`/api/users`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

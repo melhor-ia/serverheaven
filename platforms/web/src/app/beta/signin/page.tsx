@@ -21,7 +21,12 @@ const BetaSignIn = () => {
         try {
             const idTokenResult = await user.getIdTokenResult(true); // Force refresh to get latest claims
             if (idTokenResult.claims.betaPioneer) {
-                router.push('/feed');
+                // User has beta access, now check if they have a profile.
+                if (user.displayName) {
+                    router.push('/feed');
+                } else {
+                    router.push('/profile/create');
+                }
             } else {
                 await auth.signOut();
                 setError("This account is not part of the beta program.");

@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
-    "serve": "npm run build && firebase emulators:start --only auth,firestore,functions --import=./emulator-data --export-on-exit=./emulator-data",
+    "serve": "npm run build && firebase emulators:start --only auth,firestore,functions,storage --import=./firebase-export-17525159968411Pjkdg --export-on-exit=./firebase-export-17525159968411Pjkdg",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
