@@ -15,6 +15,9 @@ import { ImageCropModal } from '@/app/components/ImageCropModal';
 import { storage } from '@/lib/firebase-config';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useRef, FC } from 'react';
+import dynamic from 'next/dynamic';
+
+const PostForm = dynamic(() => import('@/app/components/PostForm'), { ssr: false });
 
 
 type ProfileUser = User & {
@@ -35,58 +38,6 @@ const badgeDetails: Record<string, BadgeType> = {
     angel: { name: 'Angel', icon: ShieldCheck, color: 'text-sky-400', description: 'Awarded to the first 100 beta testers.' },
     pioneer: { name: 'Pioneer', icon: Zap, color: 'text-rose-500', description: 'Granted to users who joined within the first week of launch.' },
 };
-
-const mockPosts: Post[] = [
-    {
-        id: 'post1',
-        author: { // This will need to be updated once we have real post author data
-            id: 'nathan',
-            username: 'nathan',
-            display_name: 'Nathan',
-            avatar_url: 'https://i.pravatar.cc/150?u=nathan',
-            cover_url: 'https://i.pravatar.cc/150?u=nathan',
-            bio: "Just a guy who loves to build.",
-            tags: ["builder", "redstone"],
-            rating: {
-                average: 4.8,
-                count: 120
-            },
-            is_supporter: false,
-            created_at: new Date().toISOString()
-        },
-        content: 'Just finished the main structure for the new hub on my server. It\'s looking massive! Will post screenshots soon. #minecraft #building',
-        likes: 132,
-        commentCount: 14,
-        createdAt: new Date('2024-07-20T18:30:00Z'),
-        server: {
-            id: 'server1',
-            name: 'ChaosCraft',
-            avatar_url: 'https://i.pravatar.cc/150?u=chaoscraft'
-        }
-    },
-    {
-        id: 'post2',
-        author: { // This will also need to be updated
-            id: 'nathan',
-            username: 'nathan',
-            display_name: 'Nathan',
-            avatar_url: 'https://i.pravatar.cc/150?u=nathan',
-            cover_url: 'https://i.pravatar.cc/150?u=nathan',
-            bio: "Just a guy who loves to build.",
-            tags: ["builder", "redstone"],
-            rating: {
-                average: 4.8,
-                count: 120
-            },
-            is_supporter: false,
-            created_at: new Date().toISOString()
-        },
-        content: 'Thinking about starting a new series on YouTube exploring weird Minecraft seeds. What do you all think? Any cool seeds I should check out?',
-        likes: 256,
-        commentCount: 42,
-        createdAt: new Date('2024-07-19T12:00:00Z'),
-    },
-];
 
 const StatItem = ({ value, label, icon: Icon }: { value: string | number; label: string, icon: React.ElementType }) => (
     <div className="flex items-center gap-2 text-sm text-muted-foreground font-mono group">
@@ -259,6 +210,7 @@ const ProfilePage = () => {
     const { currentUser } = useAuth();
 
     const [user, setUser] = useState<ProfileUser | null>(null);
+    const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -278,15 +230,28 @@ const ProfilePage = () => {
     useEffect(() => {
         if (!username) return;
 
-        const fetchUser = async () => {
+        const fetchUserData = async () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await fetch(`/api/users/username/${username}`);
-                if (!response.ok) {
+                // Fetch user profile
+                const userResponse = await fetch(`/api/users/username/${username}`);
+                if (!userResponse.ok) {
                     throw new Error('Failed to fetch user data');
                 }
-                const userData: User = await response.json();
+                const userData: User = await userResponse.json();
+
+                // Fetch user posts
+                const postsResponse = await fetch(`/api/users/${userData.id}/posts`);
+                if (!postsResponse.ok) {
+                    // It's not critical if posts fail, so we can just log it
+                    console.error('Failed to fetch user posts');
+                    setPosts([]);
+                } else {
+                    const fetchedPosts: Post[] = await postsResponse.json();
+                    setPosts(fetchedPosts);
+                }
+
 
                 // Merge with mock data for fields not in backend yet
                 const fullUser: ProfileUser = {
@@ -310,7 +275,7 @@ const ProfilePage = () => {
             }
         };
 
-        fetchUser();
+        fetchUserData();
     }, [username]);
 
     if (loading) {
@@ -326,6 +291,23 @@ const ProfilePage = () => {
     }
 
     const isOwner = !!currentUser && currentUser.uid === user.id;
+
+    const handlePostCreated = async () => {
+        // Refetch posts
+        if (user) {
+            try {
+                const postsResponse = await fetch(`/api/users/${user.id}/posts`);
+                if (postsResponse.ok) {
+                    const fetchedPosts: Post[] = await postsResponse.json();
+                    setPosts(fetchedPosts);
+                } else {
+                    console.error('Failed to refetch posts');
+                }
+            } catch (error) {
+                console.error('Error refetching posts:', error);
+            }
+        }
+    };
 
     const handleFileSelect = (file: File, type: 'avatar' | 'cover') => {
         const reader = new FileReader();
@@ -585,6 +567,11 @@ const ProfilePage = () => {
 
                             {/* Tabs and Content */}
                             <div className="flex-1 flex flex-col">
+                                {isOwner && (
+                                    <div className="p-4 border-b border-border">
+                                        <PostForm onPostCreated={handlePostCreated} />
+                                    </div>
+                                )}
                                 <div className="p-4 border-b border-border">
                                     <nav className="flex space-x-2">
                                         {TABS.map(tab => (
@@ -601,14 +588,24 @@ const ProfilePage = () => {
                                 <div className="p-4 flex-1">
                                      {activeTab === 'Posts' && (
                                          <div className="space-y-4">
-                                             {mockPosts.map(post => (
-                                                 <PostCard 
-                                                    key={post.id} 
-                                                    post={post}
-                                                    onLike={async () => {}}
-                                                    onComment={async () => {}}
-                                                 />
-                                             ))}
+                                             {posts.length > 0 ? (
+                                                posts.map(post => (
+                                                    <PostCard
+                                                        key={post.id}
+                                                        post={post}
+                                                        onLike={async () => {}}
+                                                        onComment={async () => {}}
+                                                    />
+                                                ))
+                                             ) : (
+                                                <div className="text-center text-muted-foreground py-20">
+                                                    <div className="inline-block p-4 bg-black/20 rounded-full border border-border mb-4">
+                                                        <Rss className="h-10 w-10" />
+                                                    </div>
+                                                    <p className="text-lg font-bold">No posts yet.</p>
+                                                    <p>{user.display_name} hasn&apos;t posted anything yet. Check back later!</p>
+                                                </div>
+                                             )}
                                          </div>
                                      )}
                                      {activeTab !== 'Posts' && (

@@ -107,6 +107,29 @@ router.get("/check-username", async (req, res) => {
         res.status(500).send({ message: "Internal Server Error" });
     }
 });
+// GET /users/:userId/posts - Get all posts for a specific user
+router.get("/:userId/posts", async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const postsRef = admin.firestore().collection("posts");
+        const querySnapshot = await postsRef
+            .where("author_user_id", "==", userId)
+            .where("status", "==", "active")
+            .orderBy("created_at", "desc")
+            .limit(20) // Add a limit to avoid fetching too much data at once
+            .get();
+        if (querySnapshot.empty) {
+            res.status(200).send([]); // Return empty array if no posts found
+            return;
+        }
+        const posts = querySnapshot.docs.map(doc => doc.data());
+        res.status(200).send(posts);
+    }
+    catch (error) {
+        logger.error(`Error fetching posts for user ${userId}:`, error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
 // PATCH /users - Update user profile
 router.patch("/", middleware_1.authenticate, async (req, res) => {
     const userId = req.user?.uid;

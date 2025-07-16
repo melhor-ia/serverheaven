@@ -135,3 +135,62 @@ html {
 .animate-slow-pan {
   animation: slow-pan 40s ease-in-out infinite;
 }
+
+.prose .mention {
+    background-color: theme('colors.emerald.500/0.2');
+    color: theme('colors.emerald.300');
+    border-radius: 0.3rem;
+    padding: 0.1rem 0.3rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+/* TipTap placeholder styling */
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #9ca3af !important; /* Lighter gray for better visibility */
+  pointer-events: none;
+  height: 0;
+  white-space: pre-wrap;
+}
+
+.prose .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #9ca3af !important; /* Lighter gray for better visibility */
+  pointer-events: none;
+  height: 0;
+  white-space: pre-wrap;
+}
+
+.items {
+    padding: 0.2rem;
+    position: relative;
+    border-radius: 0.5rem;
+    background: #000;
+    color: rgba(255, 255, 255, 0.8);
+    overflow: hidden;
+    font-size: 0.9rem;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.05),
+      0px 10px 20px rgba(0, 0, 0, 0.1),
+    ;
+  }
+  
+  .item {
+    display: block;
+    margin: 0;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border-radius: 0.4rem;
+    border: 1px solid transparent;
+    padding: 0.2rem 0.4rem;
+  
+    &.is-selected {
+      border-color: #fff;
+    }
+  }

@@ -104,6 +104,77 @@ router.get("/check-username", async (req: Request, res: Response) => {
     }
 });
 
+// GET /users/:userId/posts - Get all posts for a specific user
+router.get("/:userId/posts", async (req: Request, res: Response) => {
+    const { userId } = req.params;
+
+    try {
+        const postsRef = admin.firestore().collection("posts");
+        const querySnapshot = await postsRef
+            .where("author_user_id", "==", userId)
+            .where("status", "==", "active")
+            .orderBy("created_at", "desc")
+            .limit(20) // Add a limit to avoid fetching too much data at once
+            .get();
+
+        if (querySnapshot.empty) {
+            res.status(200).send([]); // Return empty array if no posts found
+            return;
+        }
+
+        const posts = querySnapshot.docs.map(doc => doc.data());
+
+        res.status(200).send(posts);
+    } catch (error) {
+        logger.error(`Error fetching posts for user ${userId}:`, error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+
+// GET /users/search?q=... - Search for users by username for mentions
+router.get("/search", async (req: Request, res: Response) => {
+    const { q } = req.query;
+
+    if (typeof q !== "string" || q.length < 1) {
+        res.status(400).send({ message: "Search query must be at least 1 character long." });
+        return;
+    }
+
+    try {
+        const queryLower = q.toLowerCase();
+        // Firestore doesn't support native "starts with" queries.
+        // This is a common workaround using a range query on an all-lowercase field.
+        const usersRef = admin.firestore().collection("users");
+        const querySnapshot = await usersRef
+            .where("username_lower", ">=", queryLower)
+            .where("username_lower", "<=", queryLower + '\uf8ff')
+            .limit(10) // Limit results for performance
+            .get();
+
+        if (querySnapshot.empty) {
+            res.status(200).send([]);
+            return;
+        }
+
+        const users = querySnapshot.docs.map(doc => {
+            const userData = doc.data() as UserDocument;
+            // Only return data needed for the mentions UI
+            return {
+                id: userData.id,
+                username: userData.username,
+                display_name: userData.display_name,
+                avatar_url: userData.avatar_url,
+            };
+        });
+
+        res.status(200).send(users);
+    } catch (error) {
+        logger.error("Error searching for users:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+
+
 // PATCH /users - Update user profile
 router.patch("/", authenticate, async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user?.uid;
