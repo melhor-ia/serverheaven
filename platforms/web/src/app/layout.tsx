@@ -6,7 +6,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('http://localhost:3000'),
+  metadataBase: new URL('https://serverheaven.co'),
   title: "Server Heaven | Find or Host the Perfect Minecraft Server",
   description: "Smart matchmaking for Minecraft communities. Connect with trusted players and servers through verified reputation systems and transparent community feedback.",
   keywords: [
