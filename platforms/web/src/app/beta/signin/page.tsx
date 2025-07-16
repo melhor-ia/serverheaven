@@ -19,22 +19,29 @@ const BetaSignIn = () => {
 
     const handleSuccessfulSignIn = async (user: User) => {
         try {
-            const idTokenResult = await user.getIdTokenResult(true); // Force refresh to get latest claims
-            if (idTokenResult.claims.betaPioneer) {
-                // User has beta access, now check if they have a profile.
-                if (user.displayName) {
+            // Check if user has a profile document in Firestore
+            const userDocResponse = await fetch(`/api/users/id/${user.uid}`);
+            
+            if (userDocResponse.ok) {
+                 // User has a profile, go to feed
+                const userProfile = await userDocResponse.json();
+                if (userProfile.username) {
                     router.push('/feed');
                 } else {
+                    // This case is unlikely if the doc exists, but as a fallback:
                     router.push('/profile/create');
                 }
+            } else if (userDocResponse.status === 404) {
+                // User does not have a profile, go to creation page
+                router.push('/profile/create');
             } else {
-                await auth.signOut();
-                setError("This account is not part of the beta program.");
+                // Handle other potential errors during fetch
+                throw new Error('Failed to check user profile.');
             }
         } catch (err) {
-            console.error("Error verifying beta status:", err);
+            console.error("Error during post-signin check:", err);
             await auth.signOut();
-            setError("Could not verify your beta access. Please try again.");
+            setError("Could not verify your profile. Please try again.");
         } finally {
             setIsLoading(false);
         }

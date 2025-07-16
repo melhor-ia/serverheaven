@@ -46,8 +46,8 @@ const mockPosts: Post[] = [
                 average: 4.8,
                 count: 120
             },
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            is_supporter: false,
+            created_at: new Date().toISOString()
         },
         content: 'Just finished the main structure for the new hub on my server. It\'s looking massive! Will post screenshots soon. #minecraft #building',
         likes: 132,
@@ -73,8 +73,8 @@ const mockPosts: Post[] = [
                 average: 4.8,
                 count: 120
             },
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            is_supporter: false,
+            created_at: new Date().toISOString()
         },
         content: 'Thinking about starting a new series on YouTube exploring weird Minecraft seeds. What do you all think? Any cool seeds I should check out?',
         likes: 256,
@@ -146,7 +146,7 @@ const ProfileHeader = ({ user }: { user: ProfileUser }) => (
 
 const ProfilePage = () => {
     const params = useParams();
-    const userId = params.userId as string;
+    const username = params.username as string;
 
     const [user, setUser] = useState<ProfileUser | null>(null);
     const [loading, setLoading] = useState(true);
@@ -157,13 +157,13 @@ const ProfilePage = () => {
     const [carouselIndex, setCarouselIndex] = useState(0);
 
     useEffect(() => {
-        if (!userId) return;
+        if (!username) return;
 
         const fetchUser = async () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await fetch(`/api/users/profile/${userId}`);
+                const response = await fetch(`/api/users/username/${username}`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch user data');
                 }
@@ -182,6 +182,7 @@ const ProfilePage = () => {
                 };
 
                 setUser(fullUser);
+                document.title = `Server Heaven | ${fullUser.display_name}`;
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An unknown error occurred');
             } finally {
@@ -190,7 +191,7 @@ const ProfilePage = () => {
         };
 
         fetchUser();
-    }, [userId]);
+    }, [username]);
 
     if (loading) {
         return <div>Loading...</div>; // TODO: Create a proper loading skeleton

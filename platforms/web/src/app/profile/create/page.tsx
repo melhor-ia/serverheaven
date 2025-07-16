@@ -168,9 +168,48 @@ const ImageUploader = ({ id, label, currentImage, onImageSelect, aspect }: { id:
 // --- Step Components ---
 
 const Step1_ProfileDetails = ({ nextStep, formData, setFormData }: { nextStep: () => void, formData: FormData, setFormData: (data: FormData) => void }) => {
+    const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+    const [debouncedUsername, setDebouncedUsername] = useState(formData.username);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedUsername(formData.username);
+        }, 500);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [formData.username]);
+
+    useEffect(() => {
+        if (debouncedUsername.length < 3) {
+            setUsernameStatus('idle');
+            return;
+        }
+
+        const checkUsername = async () => {
+            setUsernameStatus('checking');
+            try {
+                const response = await fetch(`/api/users/check-username?username=${debouncedUsername}`);
+                const { isAvailable } = await response.json();
+                setUsernameStatus(isAvailable ? 'available' : 'taken');
+            } catch (error) {
+                console.error("Failed to check username", error);
+                setUsernameStatus('idle'); // Or some error state
+            }
+        };
+
+        checkUsername();
+    }, [debouncedUsername]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setFormData({ ...formData, [e.target.id]: e.target.value });
+        const { id, value } = e.target;
+        if (id === 'username') {
+            const sanitizedValue = value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+            setFormData({ ...formData, [id]: sanitizedValue });
+        } else {
+            setFormData({ ...formData, [id]: value });
+        }
     };
 
     const handleTagsChange = (newTags: string[]) => {
@@ -205,6 +244,12 @@ const Step1_ProfileDetails = ({ nextStep, formData, setFormData }: { nextStep: (
                         required
                         className="w-full bg-black/30 border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:border-emerald-500 focus:ring-emerald-500/50 focus:ring-1 transition-all duration-300 glass"
                     />
+                     <div className="h-5 mt-2 text-sm">
+                        {usernameStatus === 'checking' && <p className="text-muted-foreground animate-pulse">Checking availability...</p>}
+                        {usernameStatus === 'available' && <p className="text-emerald-400">Username is available!</p>}
+                        {usernameStatus === 'taken' && <p className="text-red-500">This username is already taken.</p>}
+                        {formData.username.length > 0 && formData.username.length < 3 && <p className="text-yellow-500">Username must be at least 3 characters.</p>}
+                    </div>
                 </div>
                 <div>
                     <label htmlFor="displayName" className="block text-sm font-medium text-muted-foreground mb-2 font-mono uppercase tracking-wider">Display Name</label>
@@ -386,7 +431,7 @@ const CreateProfilePage = () => {
             }
             
             await currentUser.reload(); // Refresh user to get new display name etc.
-            router.push(`/profile/${currentUser.uid}`);
+            router.push(`/profile/${formData.username}`);
 
         } catch (err) {
             if (err instanceof Error) {

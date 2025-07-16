@@ -47,8 +47,8 @@ if (admin.apps.length === 0) {
     admin.initializeApp();
 }
 const router = express_1.default.Router();
-// GET /users/profile/:userId - Get user profile
-router.get("/profile/:userId", async (req, res) => {
+// GET /users/id/:userId - Get user profile by ID
+router.get("/id/:userId", async (req, res) => {
     const { userId } = req.params;
     try {
         const userDoc = await admin.firestore().collection("users").doc(userId).get();
@@ -62,7 +62,48 @@ router.get("/profile/:userId", async (req, res) => {
         res.status(200).send(publicProfile);
     }
     catch (error) {
-        logger.error("Error fetching user profile:", error);
+        logger.error("Error fetching user profile by ID:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+// GET /users/username/:username - Get user profile by username
+router.get("/username/:username", async (req, res) => {
+    const { username } = req.params;
+    try {
+        const usersRef = admin.firestore().collection("users");
+        const querySnapshot = await usersRef.where("username_lower", "==", username.toLowerCase()).limit(1).get();
+        if (querySnapshot.empty) {
+            res.status(404).send({ message: "User not found" });
+            return;
+        }
+        const userDoc = querySnapshot.docs[0];
+        const userData = userDoc.data();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { email, ...publicProfile } = userData;
+        res.status(200).send(publicProfile);
+    }
+    catch (error) {
+        logger.error("Error fetching user profile by username:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+// GET /users/check-username - Check if a username is available
+router.get("/check-username", async (req, res) => {
+    const { username } = req.query;
+    if (typeof username !== "string" || username.length < 3) {
+        res.status(400).send({ message: "Invalid username." });
+        return;
+    }
+    try {
+        const usernameLower = username.toLowerCase();
+        const usernameQuery = await admin.firestore().collection("users")
+            .where("username_lower", "==", usernameLower)
+            .limit(1)
+            .get();
+        res.status(200).send({ isAvailable: usernameQuery.empty });
+    }
+    catch (error) {
+        logger.error("Error checking username:", error);
         res.status(500).send({ message: "Internal Server Error" });
     }
 });

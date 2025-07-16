@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -9,6 +10,7 @@ import { Skeleton } from './ui/skeleton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { auth } from '@/lib/firebase-config';
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 const navLinks = [
     { href: '/feed', label: 'Feed', icon: Rss },
@@ -18,7 +20,21 @@ const navLinks = [
 const AppHeader = () => {
     const pathname = usePathname();
     const { currentUser, loading } = useAuth();
+    const [username, setUsername] = useState<string | null>(null);
     const router = useRouter();
+
+    useEffect(() => {
+        if (currentUser) {
+            fetch(`/api/users/id/${currentUser.uid}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.username) {
+                        setUsername(data.username);
+                    }
+                })
+                .catch(console.error);
+        }
+    }, [currentUser]);
 
     const handleSignOut = async () => {
         await auth.signOut();
@@ -76,20 +92,20 @@ const AppHeader = () => {
                                         <img src={currentUser.photoURL || '/default-avatar.png'} alt="User Avatar" className="h-10 w-10 rounded-full border-2 border-border group-hover:border-emerald-500 transition-colors" />
                                         <div className="text-left hidden lg:block">
                                             <p className="font-bold text-white group-hover:text-emerald-400 transition-colors">{currentUser.displayName}</p>
-                                            <p className="text-xs font-mono text-muted-foreground">@{currentUser.email?.split('@')[0]}</p>
+                                            <p className="text-xs font-mono text-muted-foreground">@{username || currentUser.email?.split('@')[0]}</p>
                                         </div>
                                     </div>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className="w-56 bg-background/80 backdrop-blur-lg border-border" align="end">
                                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                                     <DropdownMenuSeparator />
-                                    <Link href={`/profile/${currentUser.uid}`} passHref>
-                                        <DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href={username ? `/profile/${username}` : ''} className={`cursor-pointer ${!username ? 'pointer-events-none' : ''}`}>
                                             <User className="mr-2 h-4 w-4" />
                                             <span>Profile</span>
+                                        </Link>
                                         </DropdownMenuItem>
-                                    </Link>
-                                    <DropdownMenuItem onClick={handleSignOut}>
+                                    <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                                         <LogOut className="mr-2 h-4 w-4" />
                                         <span>Sign Out</span>
                                     </DropdownMenuItem>
