@@ -4,12 +4,17 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/Button';
-import { UserPlus, MessageSquare, Server, Star, Rss, Calendar, Diamond, ShieldCheck, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
+import { UserPlus, MessageSquare, Server, Star, Rss, Calendar, Diamond, ShieldCheck, Zap, ChevronLeft, ChevronRight, Edit, Camera, Trash2, X } from 'lucide-react';
 import AppHeader from '@/app/components/AppHeader';
 import PostCard from '@/app/components/PostCard';
 import { User, Post } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { AnimatedGridBackground } from '@/app/components/ui/AnimatedGridBackground';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { ImageCropModal } from '@/app/components/ImageCropModal';
+import { storage } from '@/lib/firebase-config';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useRef, FC } from 'react';
 
 
 type ProfileUser = User & {
@@ -91,62 +96,167 @@ const StatItem = ({ value, label, icon: Icon }: { value: string | number; label:
     </div>
 );
 
-const ProfileHeader = ({ user }: { user: ProfileUser }) => (
-    <header className="relative h-[40vh] min-h-[300px] w-full mb-8">
-        <div className="absolute inset-0 h-full w-full">
-            {user.cover_url ? (
-                <img src={user.cover_url} alt={`${user.display_name}'s cover`} className="h-full w-full object-cover" />
-            ) : (
-                <div className="h-full w-full">
-                    <AnimatedGridBackground />
-                </div>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
-        </div>
+interface ProfileHeaderProps {
+    user: ProfileUser;
+    isOwner: boolean;
+    isEditing: boolean;
+    onEditToggle: () => void;
+    onDiscard: () => void;
+    onDisplayNameChange: (value: string) => void;
+    newDisplayName: string;
+    handleFileSelect: (file: File, type: 'avatar' | 'cover') => void;
+    onRemoveCover: () => void;
+    newAvatarPreview: string | null;
+    newCoverPreview: string | null;
+    coverRemoved: boolean;
+}
 
-        <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-full px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
-                <div className="relative h-32 w-32 md:h-40 md:w-40 rounded-full border-4 border-background bg-background flex-shrink-0 shadow-lg -mt-12 md:-mt-0">
-                    <img src={user.avatar_url} alt={`${user.display_name}'s avatar`} className="w-full h-full rounded-full object-cover" />
-                </div>
 
-                <div className="flex-grow flex flex-col md:flex-row justify-between items-center md:items-start w-full text-center md:text-left pt-4">
-                    <div className="w-full">
-                        <div className="flex flex-col md:flex-row justify-between items-center">
-                            <div>
-                        <h1 className="text-4xl font-bold text-white hud-text-glow font-mono">{user.display_name}</h1>
-                        <p className="text-muted-foreground font-mono text-lg">@{user.username}</p>
+const ProfileHeader: FC<ProfileHeaderProps> = ({ user, isOwner, isEditing, onEditToggle, onDiscard, onDisplayNameChange, newDisplayName, handleFileSelect, onRemoveCover, newAvatarPreview, newCoverPreview, coverRemoved }) => {
+    const avatarInputRef = useRef<HTMLInputElement>(null);
+    const coverInputRef = useRef<HTMLInputElement>(null);
+
+    const hasCover = !coverRemoved && !!(user.cover_url || newCoverPreview);
+
+    return (
+        <header className="relative h-[40vh] min-h-[300px] w-full mb-8">
+            <div className="group absolute inset-0 h-full w-full">
+                {hasCover ? (
+                    <img src={newCoverPreview || user.cover_url} alt={`${user.display_name}'s cover`} className="h-full w-full object-cover" />
+                ) : (
+                    <div className="h-full w-full">
+                        <AnimatedGridBackground />
                     </div>
-                    <div className="flex gap-3 mt-4 md:mt-0">
-                        <Button size="lg" className="bg-white/10 border border-white/20 text-white backdrop-blur-sm hover:bg-white/20">
-                            <UserPlus className="mr-2 h-5 w-5" /> Follow
-                        </Button>
-                        <Button size="lg" className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 backdrop-blur-sm hover:bg-emerald-500/30">
-                            <MessageSquare className="mr-2 h-5 w-5" /> Message
-                        </Button>
-                            </div>
+                )}
+                {isEditing && (
+                    <>
+                        <div className="absolute inset-0 flex items-center justify-center gap-4 bg-transparent transition-colors duration-300 group-hover:bg-black/50">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-14 w-14 border-white/30 bg-black/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100 hover:bg-black/70"
+                                onClick={() => coverInputRef.current?.click()}
+                            >
+                                <Camera className="h-6 w-6" />
+                            </Button>
+                            {hasCover && (
+                                <Button
+                                    variant="destructive"
+                                    size="icon"
+                                    className="h-14 w-14 border-red-500/30 bg-red-950/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100 hover:bg-red-950/80"
+                                    onClick={onRemoveCover}
+                                >
+                                    <Trash2 className="h-6 w-6" />
+                                </Button>
+                            )}
                         </div>
-                        <div className="w-full h-px bg-border my-4"></div>
-                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2">
-                            <StatItem value={user.stats.servers} label="Servers" icon={Server} />
-                            <StatItem value={user.stats.posts} label="Posts" icon={Rss} />
-                            <StatItem value={user.stats.reviews} label="Reviews" icon={MessageSquare} />
-                             <div className="flex items-center gap-2 text-sm text-muted-foreground font-mono group">
-                                <Star className="h-4 w-4 text-yellow-400/80 transition-colors group-hover:text-yellow-400 fill-yellow-400/50 group-hover:fill-yellow-400" />
-                                <span className="font-bold text-white transition-colors group-hover:text-white">{user.rating.average}</span>
-                                <span className="transition-colors group-hover:text-white/80">({user.rating.count} ratings)</span>
-                             </div>
+                        <input
+                            type="file"
+                            ref={coverInputRef}
+                            className="hidden"
+                            accept="image/png, image/jpeg, image/gif"
+                            onChange={(e) => {
+                                if (e.target.files?.[0]) {
+                                    handleFileSelect(e.target.files[0], 'cover');
+                                }
+                            }}
+                        />
+                    </>
+                )}
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+            </div>
+
+            <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-full px-4 sm:px-6 lg:px-8">
+                <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
+                    <div className="relative h-32 w-32 md:h-40 md:w-40 rounded-full border-4 border-background bg-background flex-shrink-0 shadow-lg -mt-12 md:-mt-0">
+                        <img src={newAvatarPreview || user.avatar_url} alt={`${user.display_name}'s avatar`} className="w-full h-full rounded-full object-cover" />
+                        {isEditing && (
+                            <>
+                                <Button variant="outline" size="icon" className="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 border-white/30 rounded-full h-10 w-10" onClick={() => avatarInputRef.current?.click()}>
+                                    <Camera className="h-5 w-5" />
+                                </Button>
+                                <input
+                                    type="file"
+                                    ref={avatarInputRef}
+                                    className="hidden"
+                                    accept="image/png, image/jpeg, image/gif"
+                                    onChange={(e) => {
+                                        if (e.target.files?.[0]) {
+                                            handleFileSelect(e.target.files[0], 'avatar');
+                                        }
+                                    }}
+                                 />
+                            </>
+                        )}
+                    </div>
+
+                    <div className="flex-grow flex flex-col md:flex-row justify-between items-center md:items-start w-full text-center md:text-left pt-4">
+                        <div className="w-full">
+                            <div className="flex flex-col md:flex-row justify-between items-center">
+                                <div>
+                                    {isEditing ? (
+                                        <input
+                                            type="text"
+                                            value={newDisplayName}
+                                            onChange={(e) => onDisplayNameChange(e.target.value)}
+                                            className="bg-transparent border-b-2 border-emerald-500 text-4xl font-bold text-white hud-text-glow font-mono focus:outline-none focus:border-emerald-400"
+                                        />
+                                    ) : (
+                                        <h1 className="text-4xl font-bold text-white hud-text-glow font-mono">{user.display_name}</h1>
+                                    )}
+                                    <p className="text-muted-foreground font-mono text-lg">@{user.username}</p>
+                                </div>
+                                <div className="flex gap-3 mt-4 md:mt-0">
+                                    {isOwner ? (
+                                        isEditing ? (
+                                            <div className="flex items-center gap-2">
+                                                <Button size="lg" onClick={onEditToggle} className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 backdrop-blur-sm hover:bg-emerald-500/30">
+                                                    <ChevronRight className="mr-2 h-5 w-5" /> Save
+                                                </Button>
+                                                <Button size="lg" variant="ghost" onClick={onDiscard} className="text-muted-foreground hover:bg-white/10 hover:text-white">
+                                                    <X className="mr-2 h-5 w-5" /> Discard
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <Button size="lg" onClick={onEditToggle} className="bg-white/10 border border-white/20 text-white backdrop-blur-sm hover:bg-white/20">
+                                                <Edit className="mr-2 h-5 w-5" /> Edit Profile
+                                            </Button>
+                                        )
+                                    ) : (
+                                        <>
+                                            <Button size="lg" className="bg-white/10 border border-white/20 text-white backdrop-blur-sm hover:bg-white/20">
+                                                <UserPlus className="mr-2 h-5 w-5" /> Follow
+                                            </Button>
+                                            <Button size="lg" className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 backdrop-blur-sm hover:bg-emerald-500/30">
+                                                <MessageSquare className="mr-2 h-5 w-5" /> Message
+                                            </Button>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="w-full h-px bg-border my-4"></div>
+                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2">
+                                <StatItem value={user.stats.servers} label="Servers" icon={Server} />
+                                <StatItem value={user.stats.posts} label="Posts" icon={Rss} />
+                                <StatItem value={user.stats.reviews} label="Reviews" icon={MessageSquare} />
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground font-mono group">
+                                    <Star className="h-4 w-4 text-yellow-400/80 transition-colors group-hover:text-yellow-400 fill-yellow-400/50 group-hover:fill-yellow-400" />
+                                    <span className="font-bold text-white transition-colors group-hover:text-white">{user.rating.average}</span>
+                                    <span className="transition-colors group-hover:text-white/80">({user.rating.count} ratings)</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </header>
-);
+        </header>
+    );
+};
 
 const ProfilePage = () => {
     const params = useParams();
     const username = params.username as string;
+    const { currentUser } = useAuth();
 
     const [user, setUser] = useState<ProfileUser | null>(null);
     const [loading, setLoading] = useState(true);
@@ -155,6 +265,15 @@ const ProfilePage = () => {
     const [activeTab, setActiveTab] = useState('Posts');
     const [hoveredBadge, setHoveredBadge] = useState<BadgeType | null>(null);
     const [carouselIndex, setCarouselIndex] = useState(0);
+    const [isEditing, setIsEditing] = useState(false);
+    const [newDisplayName, setNewDisplayName] = useState('');
+    const [imageToCrop, setImageToCrop] = useState<{ src: string, type: 'avatar' | 'cover', aspect: number } | null>(null);
+    const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
+    const [newCoverFile, setNewCoverFile] = useState<File | null>(null);
+    const [newAvatarPreview, setNewAvatarPreview] = useState<string | null>(null);
+    const [newCoverPreview, setNewCoverPreview] = useState<string | null>(null);
+    const [coverRemoved, setCoverRemoved] = useState(false);
+
 
     useEffect(() => {
         if (!username) return;
@@ -182,6 +301,7 @@ const ProfilePage = () => {
                 };
 
                 setUser(fullUser);
+                setNewDisplayName(fullUser.display_name);
                 document.title = `Server Heaven | ${fullUser.display_name}`;
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -204,6 +324,136 @@ const ProfilePage = () => {
     if (!user) {
         return <div>User not found.</div>;
     }
+
+    const isOwner = !!currentUser && currentUser.uid === user.id;
+
+    const handleFileSelect = (file: File, type: 'avatar' | 'cover') => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            setImageToCrop({
+                src: reader.result as string,
+                type,
+                aspect: type === 'avatar' ? 1 / 1 : 16 / 9,
+            });
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const onCropComplete = (blob: Blob) => {
+        if (!imageToCrop) return;
+        const file = new File([blob], `${imageToCrop.type}.jpg`, { type: 'image/jpeg' });
+        const previewUrl = URL.createObjectURL(file);
+
+        if (imageToCrop.type === 'avatar') {
+            setNewAvatarFile(file);
+            setNewAvatarPreview(previewUrl);
+        } else {
+            setNewCoverFile(file);
+            setNewCoverPreview(previewUrl);
+            setCoverRemoved(false); // A new cover was added, so it's not "removed"
+        }
+        setImageToCrop(null);
+    };
+
+    const handleRemoveCover = () => {
+        setNewCoverFile(null);
+        if (newCoverPreview) {
+            URL.revokeObjectURL(newCoverPreview);
+        }
+        setNewCoverPreview(null);
+        setCoverRemoved(true);
+    };
+
+    const handleDiscardChanges = () => {
+        setIsEditing(false);
+        setNewDisplayName(user?.display_name || '');
+        if (newAvatarPreview) URL.revokeObjectURL(newAvatarPreview);
+        if (newCoverPreview) URL.revokeObjectURL(newCoverPreview);
+        setNewAvatarFile(null);
+        setNewCoverFile(null);
+        setNewAvatarPreview(null);
+        setNewCoverPreview(null);
+        setCoverRemoved(false);
+    };
+
+
+    const handleUpdateProfile = async () => {
+        if (!user || !currentUser) return;
+
+        const updatedData: { displayName?: string; avatarUrl?: string; coverUrl?: string; } = {};
+
+        if (newDisplayName !== user.display_name) {
+            updatedData.displayName = newDisplayName;
+        }
+
+        try {
+             if (newAvatarFile) {
+                const avatarRef = ref(storage, `users/${currentUser.uid}/avatar.jpg`);
+                await uploadBytes(avatarRef, newAvatarFile);
+                updatedData.avatarUrl = await getDownloadURL(avatarRef);
+            }
+            if (newCoverFile) {
+                const coverRef = ref(storage, `users/${currentUser.uid}/cover.jpg`);
+                await uploadBytes(coverRef, newCoverFile);
+                updatedData.coverUrl = await getDownloadURL(coverRef);
+            } else if (coverRemoved) {
+                updatedData.coverUrl = "";
+            }
+
+
+            if (Object.keys(updatedData).length === 0) {
+                setIsEditing(false);
+                return;
+            }
+
+            const token = await currentUser.getIdToken();
+            const response = await fetch('/api/users', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(updatedData),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update profile');
+            }
+
+            const updatedUser = await response.json();
+            setUser(prevUser => ({
+                ...prevUser!,
+                ...updatedUser,
+            }));
+
+            setNewDisplayName(updatedUser.display_name ?? user.display_name);
+            if (newAvatarPreview) URL.revokeObjectURL(newAvatarPreview);
+            if (newCoverPreview) URL.revokeObjectURL(newCoverPreview);
+            setNewAvatarFile(null);
+            setNewCoverFile(null);
+            setNewAvatarPreview(null);
+            setNewCoverPreview(null);
+            setCoverRemoved(false);
+            setIsEditing(false);
+
+        } catch (error) {
+            console.error("Failed to update profile", error);
+            // TODO: show error to user
+        }
+    };
+
+
+    const handleEditToggle = () => {
+        if (isEditing) {
+            handleUpdateProfile();
+        } else {
+            setNewDisplayName(user.display_name);
+            setNewAvatarPreview(null);
+            setNewCoverPreview(null);
+            setCoverRemoved(false);
+            setIsEditing(true);
+        }
+    };
 
     const TABS = ['Posts', 'Servers', 'Reviews'];
 
@@ -273,7 +523,30 @@ const ProfilePage = () => {
         <div className="bg-background text-foreground min-h-screen">
             <AppHeader />
             <main className="relative z-10 pt-20">
-                <ProfileHeader user={user} />
+                <ProfileHeader
+                    user={user}
+                    isOwner={isOwner}
+                    isEditing={isEditing}
+                    onEditToggle={handleEditToggle}
+                    onDiscard={handleDiscardChanges}
+                    newDisplayName={newDisplayName}
+                    onDisplayNameChange={setNewDisplayName}
+                    handleFileSelect={handleFileSelect}
+                    onRemoveCover={handleRemoveCover}
+                    newAvatarPreview={newAvatarPreview}
+                    newCoverPreview={newCoverPreview}
+                    coverRemoved={coverRemoved}
+                />
+
+                {imageToCrop && (
+                    <ImageCropModal
+                        isOpen={!!imageToCrop}
+                        imageSrc={imageToCrop.src}
+                        aspect={imageToCrop.aspect}
+                        onClose={() => setImageToCrop(null)}
+                        onCropComplete={onCropComplete}
+                    />
+                )}
                 
                 <div className="px-4 sm:px-6 lg:px-8 mt-24">
                     {/* Mobile: Carousel for About sections */}
