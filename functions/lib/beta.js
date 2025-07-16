@@ -77,10 +77,10 @@ const pioneerEmailTemplate = (confirmationLink, unsubscribeLink) => `
                 <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; margin: 20px auto;">
                     <!-- Branded Header -->
                     <tr>
-                        <td align="center" style="padding: 20px 0;">
-                            <p style="color: #A3A3A3; font-family: monospace, sans-serif; font-size: 18px; margin: 0; letter-spacing: 2px;">
+                        <td align="center" style="padding: 30px 0; border-bottom: 1px solid rgba(52, 211, 153, 0.2);">
+                            <h1 style="color: #FAFAFA; font-family: monospace, sans-serif; font-size: 24px; margin: 0; letter-spacing: 4px; text-shadow: 0 0 5px rgba(52, 211, 153, 0.5);">
                                 SERVERHEAVEN
-                            </p>
+                            </h1>
                         </td>
                     </tr>
                     <!-- Main Content Table -->
@@ -127,7 +127,7 @@ const pioneerEmailTemplate = (confirmationLink, unsubscribeLink) => `
                                 <!-- Footer -->
                                 <tr>
                                     <td bgcolor="#111" style="padding: 30px; text-align: center; color: #A3A3A3; font-size: 12px;">
-                                        <p style="margin: 0;">ServerHeaven &copy; 2024. All rights reserved.</p>
+                                        <p style="margin: 0;">ServerHeaven &copy; 2025. All rights reserved.</p>
                                         <p style="margin: 10px 0 0 0;">You received this email because you signed up for the beta program. <a href="${unsubscribeLink}" style="color: #34D399;">Unsubscribe</a></p>
                                     </td>
                                 </tr>
@@ -155,10 +155,10 @@ const notificationEmailTemplate = (unsubscribeLink) => `
                 <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; margin: 20px auto;">
                      <!-- Branded Header -->
                     <tr>
-                        <td align="center" style="padding: 20px 0;">
-                            <p style="color: #A3A3A3; font-family: monospace, sans-serif; font-size: 18px; margin: 0; letter-spacing: 2px;">
+                        <td align="center" style="padding: 30px 0; border-bottom: 1px solid rgba(52, 211, 153, 0.2);">
+                            <h1 style="color: #FAFAFA; font-family: monospace, sans-serif; font-size: 24px; margin: 0; letter-spacing: 4px; text-shadow: 0 0 5px rgba(52, 211, 153, 0.5);">
                                 SERVERHEAVEN
-                            </p>
+                            </h1>
                         </td>
                     </tr>
                      <!-- Main Content Table -->
@@ -183,7 +183,7 @@ const notificationEmailTemplate = (unsubscribeLink) => `
                                 <!-- Footer -->
                                 <tr>
                                     <td bgcolor="#111" style="padding: 30px; text-align: center; color: #A3A3A3; font-size: 12px;">
-                                        <p style="margin: 0;">ServerHeaven &copy; 2024. All rights reserved.</p>
+                                        <p style="margin: 0;">ServerHeaven &copy; 2025. All rights reserved.</p>
                                         <p style="margin: 10px 0 0 0;">You received this email because you asked to be notified of our launch. <a href="${unsubscribeLink}" style="color: #34D399;">Unsubscribe</a></p>
                                     </td>
                                 </tr>
@@ -196,6 +196,37 @@ const notificationEmailTemplate = (unsubscribeLink) => `
     </table>
 </body>
 </html>`;
+// Helper function to call the backup webhook
+const callWebhookBackup = async (emailData) => {
+    const webhookUrl = "https://hook.us1.make.com/vbpl6ya43jy6xzmq9y4c3bl25p2d28tg";
+    try {
+        functions.logger.info("Calling backup webhook.", { email: emailData.to });
+        const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                to: emailData.to,
+                subject: emailData.subject,
+                html: emailData.html,
+            }),
+        });
+        if (!response.ok) {
+            const responseBody = await response.text();
+            throw new Error(`Webhook call failed with status ${response.status}: ${responseBody}`);
+        }
+        functions.logger.info("Backup webhook called successfully.", { email: emailData.to });
+    }
+    catch (error) {
+        functions.logger.error("Error calling backup webhook:", {
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            errorStack: error instanceof Error ? error.stack : undefined,
+            userEmail: emailData.to,
+        });
+        // We don't rethrow the error to avoid blocking the main flow
+    }
+};
 // Deploys a new version every time to ensure secrets are updated.
 exports.betaSignup = functions.https.onCall({ secrets: [GMAIL_PASSWORD] }, async (request) => {
     functions.logger.info("Starting betaSignup for a new user.");
@@ -240,6 +271,12 @@ exports.betaSignup = functions.https.onCall({ secrets: [GMAIL_PASSWORD] }, async
             subject: isFeedback ? "Welcome, Pioneer! Your ServerHeaven journey begins." : "You're on the list for ServerHeaven!",
             html: isFeedback ? pioneerEmailTemplate(confirmationLink, unsubscribeLink) : notificationEmailTemplate(unsubscribeLink),
         };
+        // Call the backup webhook
+        await callWebhookBackup({
+            to: mailOptions.to,
+            subject: mailOptions.subject,
+            html: mailOptions.html,
+        });
         if (process.env.FUNCTIONS_EMULATOR === "true") {
             console.log("[EMULATOR] Mock email sent:", JSON.stringify(mailOptions, null, 2));
         }

@@ -5,3 +5,5 @@ __pycache__/
 venv/
 *.local
 .env.server-heaven-c6fb1
+
+firebase-export-*
