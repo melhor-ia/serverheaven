@@ -6,8 +6,38 @@ import { AuthProvider } from "./contexts/AuthContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Server Heaven",
-  description: "Find your next gaming server.",
+  metadataBase: new URL('http://localhost:3000'),
+  title: "Server Heaven | Find or Host the Perfect Minecraft Server",
+  description: "Smart matchmaking for Minecraft communities. Connect with trusted players and servers through verified reputation systems and transparent community feedback.",
+  keywords: [
+    "Minecraft Server",
+    "Server Hosting",
+    "Minecraft Community",
+    "Trusted Servers",
+    "ServerHeaven"
+  ],
+  openGraph: {
+    title: "Server Heaven | Find or Host the Perfect Minecraft Server",
+    description: "Smart matchmaking for Minecraft communities. Connect with trusted players and servers through verified reputation systems and transparent community feedback.",
+    url: "/",
+    siteName: "Server Heaven",
+    images: [
+      {
+        url: "/og",
+        width: 1200,
+        height: 630,
+        alt: "Server Heaven"
+      }
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Server Heaven | Find or Host the Perfect Minecraft Server",
+    description: "Smart matchmaking for Minecraft communities. Connect with trusted players and servers through verified reputation systems and transparent community feedback.",
+    images: ["/og"],
+  },
 };
 
 export default function RootLayout({

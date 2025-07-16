@@ -87,7 +87,7 @@ export default function Home() {
             <div className="max-w-4xl mx-auto text-center space-y-8">
               <div className="inline-flex items-center gap-2 hud-panel px-4 py-2 rounded-full">
                 <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                <span className="text-sm font-mono text-emerald-400 uppercase tracking-wider">Beta Access Coming Soon</span>
+                <span className="text-sm font-mono text-emerald-400 uppercase tracking-wider">Beta Access is live!</span>
               </div>
               
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-tight">

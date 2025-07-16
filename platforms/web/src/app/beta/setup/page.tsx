@@ -289,7 +289,7 @@ const ThankYouStep = () => (
              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400/80 to-emerald-500" />
             <h3 className="text-lg text-white font-semibold font-mono uppercase tracking-wider text-center">What&apos;s Next?</h3>
             <p className="text-muted-foreground text-center pt-2">
-                The first feature drop is scheduled for next week. Keep an eye on your inbox for updates. We can&apos;t wait to hear your feedback!
+                The first full drop is scheduled for later this week. Keep an eye on your inbox for updates. We can&apos;t wait to hear your feedback!
             </p>
         </div>
     </div>
