@@ -10,16 +10,10 @@ import { useSearchParams } from 'next/navigation';
 import { auth, functions } from '@/lib/firebase-config';
 import { httpsCallable, HttpsCallableResult } from 'firebase/functions';
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-<<<<<<< HEAD
 import { DiscordIcon } from '../../components/ui/DiscordIcon';
 import Link from 'next/link';
-=======
 import { FcGoogle } from 'react-icons/fc';
-<<<<<<< HEAD
->>>>>>> 1d53785 (feat doc for beta)
-=======
 import { useRouter } from 'next/navigation';
->>>>>>> 10014a1 (feat storage for cover,pfp)
 
 interface VerifyTokenResponse {
     success: boolean;
@@ -282,24 +276,6 @@ const AuthStep = ({ handleEmailPasswordSubmit, handleGoogleSignIn, password, set
     </div>
 );
 
-<<<<<<< HEAD
-const ThankYouStep = () => (
-    <div className="w-full max-w-3xl hud-panel p-8 md:p-12 rounded-2xl text-center">
-        <Badge className="mb-6 bg-emerald-500/20 text-emerald-400 border-emerald-400/30 font-mono uppercase">
-            Setup Complete
-        </Badge>
-        <h1 className="text-2xl md:text-4xl font-bold mb-4 text-white hud-text-glow font-mono">
-            You&apos;re All Set!
-        </h1>
-        <p className="text-muted-foreground mb-8">
-            Thank you for joining the ServerHeaven beta program. Your journey is just beginning.
-        </p>
-        <div className="glass p-6 rounded-lg text-left space-y-4 mb-10 relative overflow-hidden">
-             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400/80 to-emerald-500" />
-            <h3 className="text-lg text-white font-semibold font-mono uppercase tracking-wider text-center">What&apos;s Next?</h3>
-            <p className="text-muted-foreground text-center pt-2">
-                Keep an eye on your inbox for the first full feature drop. In the meantime, join our community on Discord to connect with the team and other testers!
-=======
 const ThankYouStep = () => {
     const router = useRouter();
 
@@ -307,7 +283,7 @@ const ThankYouStep = () => {
         // Redirect to profile creation after a short delay
         const timer = setTimeout(() => {
             router.push('/profile/create');
-        }, 3000); // 3-second delay to allow user to read the message
+        }, 5000); // 5-second delay to allow user to read the message and click the button
 
         return () => clearTimeout(timer);
     }, [router]);
@@ -321,34 +297,28 @@ const ThankYouStep = () => {
                 You&apos;re All Set!
             </h1>
             <p className="text-muted-foreground mb-8">
-                Thank you for joining the ServerHeaven beta program. Redirecting you to create your profile...
->>>>>>> 10014a1 (feat storage for cover,pfp)
+                Thank you for joining the ServerHeaven beta program. We&apos;ll redirect you to create your profile in a moment.
             </p>
             <div className="glass p-6 rounded-lg text-left space-y-4 mb-10 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400/80 to-emerald-500" />
+                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400/80 to-emerald-500" />
                 <h3 className="text-lg text-white font-semibold font-mono uppercase tracking-wider text-center">What&apos;s Next?</h3>
                 <p className="text-muted-foreground text-center pt-2">
-                    Time to craft your public identity. Your profile is how others will see you in the ServerHeaven universe.
+                    While you wait, join our community on Discord to connect with the team and other testers!
                 </p>
             </div>
+            <Link href="https://discord.gg/h6VVzbZU" target="_blank" rel="noopener noreferrer">
+                <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full sm:w-auto border-emerald-400/50 text-emerald-400 hover:bg-emerald-400/10 hover:text-emerald-300 group transition-all duration-300 uppercase tracking-wider"
+                >
+                    <DiscordIcon className="mr-2 h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                    Join the Beta Community
+                </Button>
+            </Link>
         </div>
-<<<<<<< HEAD
-        <Link href="https://discord.gg/h6VVzbZU" target="_blank" rel="noopener noreferrer">
-            <Button
-                size="lg"
-                variant="outline"
-                className="w-full sm:w-auto border-emerald-400/50 text-emerald-400 hover:bg-emerald-400/10 hover:text-emerald-300 group transition-all duration-300 uppercase tracking-wider"
-            >
-                <DiscordIcon className="mr-2 h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-                Join the Beta Community
-            </Button>
-        </Link>
-    </div>
-);
-=======
     );
 };
->>>>>>> 10014a1 (feat storage for cover,pfp)
 
 
 export default function BetaProfileSetup() {
@@ -535,4 +505,4 @@ export default function BetaProfileSetup() {
             </div>
         </div>
     );
-} 
+}
