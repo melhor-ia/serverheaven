@@ -3,6 +3,7 @@
 import * as express from "express";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { authenticate, AuthenticatedRequest } from "./middleware";
+import * as admin from "firebase-admin";
 
 // Based on /purpleStone/_legacy/Modelagem de Dados.md
 interface Post {
@@ -123,10 +124,51 @@ router.get("/", async (req, res) => {
         const postsSnapshot = await db.collection("posts")
             .where('status', '==', 'active')
             .orderBy("created_at", "desc")
-            .limit(10)
+            .limit(20) // Keep a reasonable limit
             .get();
-            
-        const posts = postsSnapshot.docs.map(doc => doc.data());
+
+        if (postsSnapshot.empty) {
+            res.status(200).send({ data: [] });
+            return;
+        }
+
+        // Gather author IDs to fetch their data
+        const userIds = new Set<string>();
+        postsSnapshot.docs.forEach(doc => {
+            const post = doc.data() as Post;
+            if (post.author_user_id) {
+                userIds.add(post.author_user_id);
+            }
+        });
+
+        // Fetch author data in a batch
+        let authors: { [key: string]: any } = {};
+        if (userIds.size > 0) {
+            const usersSnapshot = await db.collection("users").where(admin.firestore.FieldPath.documentId(), 'in', Array.from(userIds)).get();
+            usersSnapshot.forEach(userDoc => {
+                const userData = userDoc.data();
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { email, ...publicProfile } = userData;
+                authors[userDoc.id] = publicProfile;
+            });
+        }
+        
+        // Map posts and embed author info
+        const posts = postsSnapshot.docs.map(doc => {
+            const postData = doc.data() as Post;
+            const author = postData.author_user_id ? authors[postData.author_user_id] : null;
+
+            return {
+                id: doc.id,
+                author: author,
+                content: postData.content,
+                likes: postData.like_count || 0,
+                commentCount: postData.comment_count || 0,
+                createdAt: postData.created_at.toDate(),
+                server: postData.author_server_id || null
+            };
+        });
+
         res.status(200).send({ data: posts });
     } catch (error) {
         console.error("Error fetching posts:", error);

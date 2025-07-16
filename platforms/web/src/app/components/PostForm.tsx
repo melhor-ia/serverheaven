@@ -157,9 +157,10 @@ const MenuBar = () => {
 interface PostFormProps {
     onPostCreated: () => void;
     userServers?: { id: string, name: string }[];
+    className?: string;
 }
 
-const PostForm = ({ onPostCreated }: PostFormProps) => {
+const PostForm = ({ onPostCreated, className }: PostFormProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -200,7 +201,7 @@ const PostForm = ({ onPostCreated }: PostFormProps) => {
                     return "The world wants to know. What's up?";
                 }
                 // When expanded, show more detailed instructions
-                return "\n• Use @ to mention users\n• Use $ to mention servers";
+                return "\n• Use @ to mention users\n• Use $ to mention servers\n• Press Ctrl+Enter to post";
             },
         }),
         Mention.configure({
@@ -223,8 +224,20 @@ const PostForm = ({ onPostCreated }: PostFormProps) => {
         }),
     ];
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const clearForm = () => {
+        setContent('');
+        setEditorContent('');
+        if (editor) {
+            editor.commands.clearContent();
+        }
+        setError(null);
+    };
+
+    const handleSubmit = async (e?: React.FormEvent) => {
+        if (e) {
+            e.preventDefault();
+        }
+        
         if (!editorContent.trim() || !currentUser) {
             return;
         }
@@ -247,7 +260,6 @@ const PostForm = ({ onPostCreated }: PostFormProps) => {
             });
         }
 
-
         try {
             const functions = getFunctions();
             const createPostCallable = httpsCallable(functions, 'api'); 
@@ -265,11 +277,8 @@ const PostForm = ({ onPostCreated }: PostFormProps) => {
                 }
             });
 
-            setContent('');
-            setEditorContent('');
-            if (editor) {
-                editor.commands.clearContent();
-            }
+            clearForm();
+            setIsExpanded(false);
             onPostCreated();
         } catch (err) {
             console.error("Error creating post:", err);
@@ -279,9 +288,23 @@ const PostForm = ({ onPostCreated }: PostFormProps) => {
         }
     };
 
+    const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.ctrlKey && event.key === 'Enter' && !isSubmitting && editorContent.trim()) {
+            event.preventDefault();
+            handleSubmit();
+        }
+    };
+
     const handleFocus = () => {
         if (!isExpanded) {
             setIsExpanded(true);
+        }
+    };
+
+    const handleBlur = () => {
+        // Collapse if content is empty
+        if (!editorContent.trim()) {
+            setIsExpanded(false);
         }
     };
 
@@ -290,11 +313,11 @@ const PostForm = ({ onPostCreated }: PostFormProps) => {
     }
 
     return (
-        <div className={cn("hud-panel rounded-lg overflow-hidden p-4 sm:p-6 mb-8 transition-all duration-300", { "py-3 sm:py-3": !isExpanded })}>
+        <div className={cn("hud-panel rounded-lg overflow-hidden p-4 sm:p-6 mb-8 transition-all duration-300", { "py-3 sm:py-3": !isExpanded }, className)}>
             <form onSubmit={handleSubmit}>
                 <div className="flex items-start space-x-4">
                     <img src={currentUser.photoURL || '/default-avatar.png'} alt="Your avatar" className="h-10 w-10 rounded-full" />
-                    <div className="flex-1" onFocus={handleFocus}>
+                    <div className="flex-1" onFocus={handleFocus} onBlur={handleBlur}>
                          <EditorProvider 
                             key={isExpanded ? 'expanded' : 'collapsed'}
                             extensions={extensions} 
@@ -306,6 +329,10 @@ const PostForm = ({ onPostCreated }: PostFormProps) => {
                             editorProps={{
                                 attributes: {
                                     class: 'prose prose-sm prose-invert p-3 min-h-[40px] w-full max-w-none focus:outline-none',
+                                },
+                                handleKeyDown: (view, event) => {
+                                    handleKeyDown(event);
+                                    return false; // Allow other handlers to run
                                 },
                             }}
                             slotBefore={isExpanded ? <MenuBar /> : undefined}
@@ -325,7 +352,7 @@ const PostForm = ({ onPostCreated }: PostFormProps) => {
                                     {editorContent.length} / {MAX_CHARACTERS}
                                 </div>
                                 
-                                <div className="flex justify-between items-center mt-4">
+                                <div className="flex justify-end items-center mt-4">
                                     <div className="flex items-center gap-2">
                                         {error && <p className="text-red-500 text-sm">{error}</p>}
                                         <Button 

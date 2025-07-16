@@ -111,22 +111,82 @@ router.get("/check-username", async (req, res) => {
 router.get("/:userId/posts", async (req, res) => {
     const { userId } = req.params;
     try {
+        // First, get the author's public information to embed in each post
+        const userDoc = await admin.firestore().collection("users").doc(userId).get();
+        if (!userDoc.exists) {
+            res.status(404).send({ message: "Author not found" });
+            return;
+        }
+        const userData = userDoc.data();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { email, ...authorProfile } = userData;
         const postsRef = admin.firestore().collection("posts");
         const querySnapshot = await postsRef
             .where("author_user_id", "==", userId)
             .where("status", "==", "active")
             .orderBy("created_at", "desc")
-            .limit(20) // Add a limit to avoid fetching too much data at once
+            .limit(20)
             .get();
         if (querySnapshot.empty) {
-            res.status(200).send([]); // Return empty array if no posts found
+            res.status(200).send([]);
             return;
         }
-        const posts = querySnapshot.docs.map(doc => doc.data());
+        // Map posts and embed author info, transforming to match frontend model
+        const posts = querySnapshot.docs.map(doc => {
+            const postData = doc.data();
+            return {
+                id: doc.id,
+                author: authorProfile,
+                content: postData.content,
+                likes: postData.like_count || 0,
+                commentCount: postData.comment_count || 0,
+                createdAt: postData.created_at.toDate(),
+                server: postData.author_server_id || null, // Basic server info
+                // Fields not on the frontend model are implicitly excluded
+            };
+        });
         res.status(200).send(posts);
     }
     catch (error) {
         logger.error(`Error fetching posts for user ${userId}:`, error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+// GET /users/search?q=... - Search for users by username for mentions
+router.get("/search", async (req, res) => {
+    const { q } = req.query;
+    if (typeof q !== "string" || q.length < 1) {
+        res.status(400).send({ message: "Search query must be at least 1 character long." });
+        return;
+    }
+    try {
+        const queryLower = q.toLowerCase();
+        // Firestore doesn't support native "starts with" queries.
+        // This is a common workaround using a range query on an all-lowercase field.
+        const usersRef = admin.firestore().collection("users");
+        const querySnapshot = await usersRef
+            .where("username_lower", ">=", queryLower)
+            .where("username_lower", "<=", queryLower + '\uf8ff')
+            .limit(10) // Limit results for performance
+            .get();
+        if (querySnapshot.empty) {
+            res.status(200).send([]);
+            return;
+        }
+        const users = querySnapshot.docs.map(doc => {
+            const userData = doc.data();
+            // Only return data needed for the mentions UI
+            return {
+                id: userData.id,
+                username: userData.username,
+                display_name: userData.display_name,
+                avatar_url: userData.avatar_url,
+            };
+        });
+        res.status(200).send(users);
+    }
+    catch (error) {
+        logger.error("Error searching for users:", error);
         res.status(500).send({ message: "Internal Server Error" });
     }
 });

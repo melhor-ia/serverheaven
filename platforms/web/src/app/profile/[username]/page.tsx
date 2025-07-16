@@ -567,11 +567,6 @@ const ProfilePage = () => {
 
                             {/* Tabs and Content */}
                             <div className="flex-1 flex flex-col">
-                                {isOwner && (
-                                    <div className="p-4 border-b border-border">
-                                        <PostForm onPostCreated={handlePostCreated} />
-                                    </div>
-                                )}
                                 <div className="p-4 border-b border-border">
                                     <nav className="flex space-x-2">
                                         {TABS.map(tab => (
@@ -587,17 +582,21 @@ const ProfilePage = () => {
                                 </div>
                                 <div className="p-4 flex-1">
                                      {activeTab === 'Posts' && (
-                                         <div className="space-y-4">
+                                         <div className="space-y-4 max-w-2xl mx-auto">
+                                             {isOwner && (
+                                                <PostForm 
+                                                    onPostCreated={handlePostCreated}
+                                                    className="mb-4 border-2 border-dashed border-emerald-500/30 hover:border-emerald-500/60 transition-colors"
+                                                />
+                                             )}
                                              {posts.length > 0 ? (
                                                 posts.map(post => (
                                                     <PostCard
                                                         key={post.id}
                                                         post={post}
-                                                        onLike={async () => {}}
-                                                        onComment={async () => {}}
                                                     />
                                                 ))
-                                             ) : (
+                                             ) : !isOwner ? (
                                                 <div className="text-center text-muted-foreground py-20">
                                                     <div className="inline-block p-4 bg-black/20 rounded-full border border-border mb-4">
                                                         <Rss className="h-10 w-10" />
@@ -605,7 +604,7 @@ const ProfilePage = () => {
                                                     <p className="text-lg font-bold">No posts yet.</p>
                                                     <p>{user.display_name} hasn&apos;t posted anything yet. Check back later!</p>
                                                 </div>
-                                             )}
+                                             ) : null}
                                          </div>
                                      )}
                                      {activeTab !== 'Posts' && (

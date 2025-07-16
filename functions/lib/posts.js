@@ -37,6 +37,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express = __importStar(require("express"));
 const firestore_1 = require("firebase-admin/firestore");
 const middleware_1 = require("./middleware");
+const admin = __importStar(require("firebase-admin"));
 const router = express.Router();
 const db = (0, firestore_1.getFirestore)();
 // POST /posts - Create a new post
@@ -122,9 +123,45 @@ router.get("/", async (req, res) => {
         const postsSnapshot = await db.collection("posts")
             .where('status', '==', 'active')
             .orderBy("created_at", "desc")
-            .limit(10)
+            .limit(20) // Keep a reasonable limit
             .get();
-        const posts = postsSnapshot.docs.map(doc => doc.data());
+        if (postsSnapshot.empty) {
+            res.status(200).send({ data: [] });
+            return;
+        }
+        // Gather author IDs to fetch their data
+        const userIds = new Set();
+        postsSnapshot.docs.forEach(doc => {
+            const post = doc.data();
+            if (post.author_user_id) {
+                userIds.add(post.author_user_id);
+            }
+        });
+        // Fetch author data in a batch
+        let authors = {};
+        if (userIds.size > 0) {
+            const usersSnapshot = await db.collection("users").where(admin.firestore.FieldPath.documentId(), 'in', Array.from(userIds)).get();
+            usersSnapshot.forEach(userDoc => {
+                const userData = userDoc.data();
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { email, ...publicProfile } = userData;
+                authors[userDoc.id] = publicProfile;
+            });
+        }
+        // Map posts and embed author info
+        const posts = postsSnapshot.docs.map(doc => {
+            const postData = doc.data();
+            const author = postData.author_user_id ? authors[postData.author_user_id] : null;
+            return {
+                id: doc.id,
+                author: author,
+                content: postData.content,
+                likes: postData.like_count || 0,
+                commentCount: postData.comment_count || 0,
+                createdAt: postData.created_at.toDate(),
+                server: postData.author_server_id || null
+            };
+        });
         res.status(200).send({ data: posts });
     }
     catch (error) {
