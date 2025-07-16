@@ -9,6 +9,7 @@ import AppHeader from '@/app/components/AppHeader';
 import PostCard from '@/app/components/PostCard';
 import { User, Post } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { AnimatedGridBackground } from '@/app/components/ui/AnimatedGridBackground';
 
 
 type ProfileUser = User & {
@@ -38,6 +39,15 @@ const mockPosts: Post[] = [
             username: 'nathan',
             display_name: 'Nathan',
             avatar_url: 'https://i.pravatar.cc/150?u=nathan',
+            cover_url: 'https://i.pravatar.cc/150?u=nathan',
+            bio: "Just a guy who loves to build.",
+            tags: ["builder", "redstone"],
+            rating: {
+                average: 4.8,
+                count: 120
+            },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
         },
         content: 'Just finished the main structure for the new hub on my server. It\'s looking massive! Will post screenshots soon. #minecraft #building',
         likes: 132,
@@ -56,6 +66,15 @@ const mockPosts: Post[] = [
             username: 'nathan',
             display_name: 'Nathan',
             avatar_url: 'https://i.pravatar.cc/150?u=nathan',
+            cover_url: 'https://i.pravatar.cc/150?u=nathan',
+            bio: "Just a guy who loves to build.",
+            tags: ["builder", "redstone"],
+            rating: {
+                average: 4.8,
+                count: 120
+            },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
         },
         content: 'Thinking about starting a new series on YouTube exploring weird Minecraft seeds. What do you all think? Any cool seeds I should check out?',
         likes: 256,
@@ -75,7 +94,13 @@ const StatItem = ({ value, label, icon: Icon }: { value: string | number; label:
 const ProfileHeader = ({ user }: { user: ProfileUser }) => (
     <header className="relative h-[40vh] min-h-[300px] w-full mb-8">
         <div className="absolute inset-0 h-full w-full">
-            <img src={user.cover_url} alt={`${user.display_name}'s cover`} className="h-full w-full object-cover" />
+            {user.cover_url ? (
+                <img src={user.cover_url} alt={`${user.display_name}'s cover`} className="h-full w-full object-cover" />
+            ) : (
+                <div className="h-full w-full">
+                    <AnimatedGridBackground />
+                </div>
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
         </div>
 

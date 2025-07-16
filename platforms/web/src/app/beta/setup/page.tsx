@@ -277,17 +277,6 @@ const AuthStep = ({ handleEmailPasswordSubmit, handleGoogleSignIn, password, set
 );
 
 const ThankYouStep = () => {
-    const router = useRouter();
-
-    useEffect(() => {
-        // Redirect to profile creation after a short delay
-        const timer = setTimeout(() => {
-            router.push('/profile/create');
-        }, 5000); // 5-second delay to allow user to read the message and click the button
-
-        return () => clearTimeout(timer);
-    }, [router]);
-
     return (
         <div className="w-full max-w-3xl hud-panel p-8 md:p-12 rounded-2xl text-center">
             <Badge className="mb-6 bg-emerald-500/20 text-emerald-400 border-emerald-400/30 font-mono uppercase">
@@ -297,15 +286,16 @@ const ThankYouStep = () => {
                 You&apos;re All Set!
             </h1>
             <p className="text-muted-foreground mb-8">
-                Thank you for joining the ServerHeaven beta program. We&apos;ll redirect you to create your profile in a moment.
+                Thank you for joining the ServerHeaven beta program. Proceed to create your profile or join our Discord community.
             </p>
             <div className="glass p-6 rounded-lg text-left space-y-4 mb-10 relative overflow-hidden">
                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400/80 to-emerald-500" />
                 <h3 className="text-lg text-white font-semibold font-mono uppercase tracking-wider text-center">What&apos;s Next?</h3>
                 <p className="text-muted-foreground text-center pt-2">
-                    While you wait, join our community on Discord to connect with the team and other testers!
+                    Create your public profile to get started on the platform, and join our community on Discord to connect with the team and other testers!
                 </p>
             </div>
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
             <Link href="https://discord.gg/h6VVzbZU" target="_blank" rel="noopener noreferrer">
                 <Button
                     size="lg"
@@ -316,6 +306,16 @@ const ThankYouStep = () => {
                     Join the Beta Community
                 </Button>
             </Link>
+                <Link href="/profile/create">
+                     <Button
+                        size="lg"
+                        className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold group transition-all duration-300 shadow-glow-lg uppercase tracking-wider"
+                    >
+                        Create Your Profile
+                        <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                    </Button>
+                </Link>
+            </div>
         </div>
     );
 };
