@@ -53,16 +53,15 @@ export async function GET(request: Request) {
         />
         {/* Glitch Title */}
         <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{ position: "absolute", top: -2, left: 2, fontSize: 96, color: "#22D3EE", opacity: 0.8 }}>SERVER HEAVEN</span>
-          <span style={{ position: "absolute", top: 2, left: -2, fontSize: 96, color: "#F472B6", opacity: 0.8 }}>SERVER HEAVEN</span>
+          <span style={{ position: "absolute", top: "-2px", left: "2px", fontSize: 96, color: "rgba(34, 211, 238, 0.8)", fontWeight: 700 }}>SERVER HEAVEN</span>
+          <span style={{ position: "absolute", top: "2px", left: "-2px", fontSize: 96, color: "rgba(52, 211, 153, 0.8)", fontWeight: 700 }}>SERVER HEAVEN</span>
           <span
             style={{
               position: "relative",
               fontSize: 96,
-              backgroundClip: "text",
-              backgroundImage: "linear-gradient(90deg, #34D399, #10B981)",
-              WebkitBackgroundClip: "text",
-              color: "transparent",
+              color: "#ffffff",
+              textShadow: "0 0 10px rgba(52, 211, 153, 0.6)",
+              fontWeight: 700,
             }}
           >
             SERVER HEAVEN
@@ -70,15 +69,12 @@ export async function GET(request: Request) {
         </div>
         {/* Subtitle */}
         <span style={{
-          fontSize: 36,
-          color: "hsl(0 0% 90%)",
+          fontSize: 48,
+          color: "#34D399",
           marginTop: 20,
-          textTransform: "uppercase",
-          letterSpacing: "8px",
-          fontWeight: 400,
-          textShadow: "0 0 15px rgba(52, 211, 153, 0.5)"
+          fontWeight: 700,
         }}>
-          matchmaking community
+          Minecraft Matchmaking
         </span>
       </div>
     ),

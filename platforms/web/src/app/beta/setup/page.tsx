@@ -9,6 +9,8 @@ import { useSearchParams } from 'next/navigation';
 import { auth, functions } from '@/lib/firebase-config';
 import { httpsCallable, HttpsCallableResult } from 'firebase/functions';
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { DiscordIcon } from '../../components/ui/DiscordIcon';
+import Link from 'next/link';
 
 interface VerifyTokenResponse {
     success: boolean;
@@ -283,15 +285,25 @@ const ThankYouStep = () => (
             You&apos;re All Set!
         </h1>
         <p className="text-muted-foreground mb-8">
-            Thank you for joining the ServerHeaven beta program. That&apos;s all for now!
+            Thank you for joining the ServerHeaven beta program. Your journey is just beginning.
         </p>
         <div className="glass p-6 rounded-lg text-left space-y-4 mb-10 relative overflow-hidden">
              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400/80 to-emerald-500" />
             <h3 className="text-lg text-white font-semibold font-mono uppercase tracking-wider text-center">What&apos;s Next?</h3>
             <p className="text-muted-foreground text-center pt-2">
-                The first full drop is scheduled for later this week. Keep an eye on your inbox for updates. We can&apos;t wait to hear your feedback!
+                Keep an eye on your inbox for the first full feature drop. In the meantime, join our community on Discord to connect with the team and other testers!
             </p>
         </div>
+        <Link href="https://discord.gg/h6VVzbZU" target="_blank" rel="noopener noreferrer">
+            <Button
+                size="lg"
+                variant="outline"
+                className="w-full sm:w-auto border-emerald-400/50 text-emerald-400 hover:bg-emerald-400/10 hover:text-emerald-300 group transition-all duration-300 uppercase tracking-wider"
+            >
+                <DiscordIcon className="mr-2 h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                Join the Beta Community
+            </Button>
+        </Link>
     </div>
 );
 

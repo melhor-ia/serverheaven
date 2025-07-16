@@ -8,6 +8,7 @@ import { Badge } from "./components/ui/badge";
 import { AnimatedGridBackground } from "./components/ui/AnimatedGridBackground";
 import Link from 'next/link';
 import { BetaSignupModal } from './components/BetaSignupModal';
+import { DiscordIcon } from './components/ui/DiscordIcon';
 
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
@@ -117,6 +118,16 @@ export default function Home() {
                   Join Beta Access
                   <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
+                <Link href="https://discord.gg/h6VVzbZU" target="_blank" rel="noopener noreferrer">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full border-emerald-400/50 text-emerald-400 hover:bg-emerald-400/10 hover:text-emerald-300 group transition-all duration-300 uppercase tracking-wider"
+                  >
+                    <DiscordIcon className="mr-2 h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                    Join Discord
+                  </Button>
+                </Link>
               </div>
               
             </div>
@@ -410,14 +421,26 @@ export default function Home() {
               <p className="text-lg mb-8 max-w-2xl mx-auto text-muted-foreground">
                 Join the waitlist and get early access to ServerHeaven&apos;s smart matchmaking for Minecraft communities.
               </p>
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold shadow-glow-lg uppercase tracking-wider"
-                onClick={openLoginModal}
-              >
-                Join Beta Access
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold shadow-glow-lg uppercase tracking-wider"
+                  onClick={openLoginModal}
+                >
+                  Join Beta Access
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+                <Link href="https://discord.gg/h6VVzbZU" target="_blank" rel="noopener noreferrer">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full border-emerald-400/50 text-emerald-400 hover:bg-emerald-400/10 hover:text-emerald-300 group transition-all duration-300 uppercase tracking-wider"
+                  >
+                    <DiscordIcon className="mr-2 h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                    Join Discord
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </section>
