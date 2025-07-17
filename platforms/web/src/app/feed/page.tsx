@@ -1,100 +1,106 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Rss } from 'lucide-react';
+import AppHeader from '@/app/components/AppHeader';
+import PostCard from '@/app/components/PostCard';
 import { Post } from '@/lib/types';
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import PostCard from '../components/PostCard'; // Adjusted path
-import PostForm from '../components/PostForm'; // Add this import
-import { useAuth } from '../contexts/AuthContext'; // Assuming useAuth provides user info
+import { useAuth } from '@/app/contexts/AuthContext';
+import dynamic from 'next/dynamic';
+
+const PostForm = dynamic(() => import('@/app/components/PostForm'), { ssr: false });
 
 const FeedPage = () => {
+    const { currentUser } = useAuth();
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { user } = useAuth(); // Get user for authentication checks
-
-    const fetchPosts = async () => {
-        try {
-            const functions = getFunctions();
-            // Note: Ensure your Cloud Function for getting posts is named 'api-posts-get' or adjust as needed.
-            // Or if you have a single 'api' function that routes based on method/path,
-            // you might not need to change the function name here.
-            const getPostsCallable = httpsCallable(functions, 'api');
-            const result = await getPostsCallable({ route: 'posts', method: 'GET' });
-
-            if (Array.isArray(result.data)) {
-                setPosts(result.data as Post[]);
-            } else {
-                console.error("Expected an array of posts, but received:", result.data);
-                setPosts([]);
-            }
-        } catch (err) {
-            console.error("Error fetching posts:", err);
-            setError('Failed to load posts.');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     useEffect(() => {
-        fetchPosts();
+        const fetchFeedData = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const postsResponse = await fetch('/api/posts');
+                if (!postsResponse.ok) {
+                    throw new Error('Failed to fetch posts');
+                }
+                const { data: fetchedPosts }: { data: Post[] } = await postsResponse.json();
+                setPosts(fetchedPosts);
+
+                document.title = `Server Heaven | Feed`;
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An unknown error occurred');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchFeedData();
     }, []);
 
-    const handleLike = async (postId: string) => {
-        if (!user) {
-            alert("You must be logged in to like a post.");
-            return;
-        }
+    if (loading) {
+        return <div>Loading...</div>; // TODO: Create a proper loading skeleton
+    }
+
+    if (error) {
+        return <div>Error: {error}</div>; // TODO: Create a proper error component
+    }
+
+    const handlePostCreated = async () => {
         try {
-            const functions = getFunctions();
-            const likePostCallable = httpsCallable(functions, 'api');
-            await likePostCallable({ route: `posts/${postId}/like`, method: 'POST' });
-            // Refresh posts to show updated like count
-            fetchPosts(); 
-        } catch (err) {
-            console.error("Error liking post:", err);
-            alert("Failed to like the post.");
+            const postsResponse = await fetch('/api/posts');
+            if (postsResponse.ok) {
+                const { data: fetchedPosts }: { data: Post[] } = await postsResponse.json();
+                setPosts(fetchedPosts);
+            } else {
+                console.error('Failed to refetch posts');
+            }
+        } catch (error) {
+            console.error('Error refetching posts:', error);
         }
     };
-
-    const handleComment = async (postId: string, content: string) => {
-        if (!user) {
-            alert("You must be logged in to comment.");
-            return;
-        }
-        try {
-            const functions = getFunctions();
-            const commentOnPostCallable = httpsCallable(functions, 'api');
-            await commentOnPostCallable({ route: `posts/${postId}/comment`, method: 'POST', data: { content } });
-            // Refresh posts to show new comment
-            fetchPosts();
-        } catch (err) {
-            console.error("Error commenting on post:", err);
-            alert("Failed to post comment.");
-        }
-    };
-
-    if (loading) return <p className="text-center mt-8">Loading feed...</p>;
-    if (error) return <p className="text-center mt-8 text-red-500">{error}</p>;
 
     return (
-        <div className="container mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4 text-center">Feed</h1>
-            <PostForm onPostCreated={fetchPosts} />
-            <div className="space-y-4 mt-8">
-                {posts.length > 0 ? (
-                    posts.map(post => (
-                        <PostCard 
-                            key={post.id} 
-                            post={post}
-                            onLike={handleLike}
-                            onComment={handleComment}
-                        />
-                    ))
-                ) : (
-                    <p className="text-center">No posts in the feed yet.</p>
-                )}
-            </div>
+        <div className="bg-background text-foreground min-h-screen">
+            <AppHeader />
+            <main className="relative z-10 pt-20">
+                <div className="px-4 sm:px-6 lg:px-8 pt-8">
+                    <div className="flex flex-col md:flex-row gap-8 justify-center">
+
+                        {/* Main content */}
+                        <div className="flex-1 max-w-2xl mx-auto">
+                            <div className="space-y-4">
+                                {currentUser && (
+                                    <PostForm
+                                        onPostCreated={handlePostCreated}
+                                        className="mb-4 border-2 border-dashed border-emerald-500/30 hover:border-emerald-500/60 transition-colors"
+                                    />
+                                )}
+                                {posts.length > 0 ? (
+                                    posts.map(post => (
+                                        <PostCard
+                                            key={post.id}
+                                            post={post}
+                                        />
+                                    ))
+                                ) : (
+                                    <div className="text-center text-muted-foreground py-20 hud-panel rounded-lg">
+                                        <div className="inline-block p-4 bg-black/20 rounded-full border border-border mb-4">
+                                            <Rss className="h-10 w-10" />
+                                        </div>
+                                        <p className="text-lg font-bold">The feed is empty.</p>
+                                        <p>Be the first to post something!</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <footer className="text-center p-8 text-muted-foreground font-mono text-xs mt-16">
+                    ServerHeaven v0.1.0 - All rights reserved.
+                </footer>
+            </main>
         </div>
     );
 };

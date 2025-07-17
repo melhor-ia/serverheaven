@@ -45,10 +45,6 @@ const GMAIL_PASSWORD = (0, params_1.defineSecret)("GMAIL_PASSWORD");
 const GMAIL_FROM_ADDRESS = (0, params_1.defineString)("GMAIL_FROM_ADDRESS");
 // Import FieldValue directly to avoid issues with the emulator stub
 const firestore_1 = require("firebase-admin/firestore");
-// Ensure Firebase is initialized
-if (admin.apps.length === 0) {
-    admin.initializeApp();
-}
 const db = admin.firestore();
 // --- Helper Functions ---
 const getBaseUrls = () => {

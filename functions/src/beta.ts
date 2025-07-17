@@ -13,11 +13,6 @@ const GMAIL_FROM_ADDRESS = defineString("GMAIL_FROM_ADDRESS");
 // Import FieldValue directly to avoid issues with the emulator stub
 import { FieldValue } from "firebase-admin/firestore";
 
-// Ensure Firebase is initialized
-if (admin.apps.length === 0) {
-  admin.initializeApp();
-}
-
 const db = admin.firestore();
 
 // --- Helper Functions ---

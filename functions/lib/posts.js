@@ -37,7 +37,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express = __importStar(require("express"));
 const firestore_1 = require("firebase-admin/firestore");
 const middleware_1 = require("./middleware");
-const admin = __importStar(require("firebase-admin"));
 const router = express.Router();
 const db = (0, firestore_1.getFirestore)();
 // POST /posts - Create a new post
@@ -131,27 +130,45 @@ router.get("/", async (req, res) => {
         }
         // Gather author IDs to fetch their data
         const userIds = new Set();
+        const serverIds = new Set();
         postsSnapshot.docs.forEach(doc => {
             const post = doc.data();
             if (post.author_user_id) {
                 userIds.add(post.author_user_id);
             }
+            if (post.author_server_id) {
+                serverIds.add(post.author_server_id);
+            }
         });
-        // Fetch author data in a batch
-        let authors = {};
-        if (userIds.size > 0) {
-            const usersSnapshot = await db.collection("users").where(admin.firestore.FieldPath.documentId(), 'in', Array.from(userIds)).get();
+        // Fetch author data in parallel
+        const authors = {};
+        const userPromises = userIds.size > 0 ?
+            db.collection("users").where(firestore_1.FieldPath.documentId(), 'in', Array.from(userIds)).get() :
+            Promise.resolve(null);
+        const serverPromises = serverIds.size > 0 ?
+            db.collection("servers").where(firestore_1.FieldPath.documentId(), 'in', Array.from(serverIds)).get() :
+            Promise.resolve(null);
+        const [usersSnapshot, serversSnapshot] = await Promise.all([userPromises, serverPromises]);
+        if (usersSnapshot) {
             usersSnapshot.forEach(userDoc => {
-                const userData = userDoc.data();
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { email, ...publicProfile } = userData;
-                authors[userDoc.id] = publicProfile;
+                if (userDoc.exists) {
+                    const { email, ...publicProfile } = userDoc.data();
+                    authors[userDoc.id] = { ...publicProfile, type: 'user' };
+                }
+            });
+        }
+        if (serversSnapshot) {
+            serversSnapshot.forEach(serverDoc => {
+                if (serverDoc.exists) {
+                    authors[serverDoc.id] = { ...serverDoc.data(), type: 'server' };
+                }
             });
         }
         // Map posts and embed author info
         const posts = postsSnapshot.docs.map(doc => {
             const postData = doc.data();
-            const author = postData.author_user_id ? authors[postData.author_user_id] : null;
+            const authorId = postData.author_user_id || postData.author_server_id;
+            const author = authorId ? authors[authorId] : null;
             return {
                 id: doc.id,
                 author: author,
@@ -159,7 +176,7 @@ router.get("/", async (req, res) => {
                 likes: postData.like_count || 0,
                 commentCount: postData.comment_count || 0,
                 createdAt: postData.created_at.toDate(),
-                server: postData.author_server_id || null
+                server: postData.author_server_id || null // Keep this for now for client compatibility
             };
         });
         res.status(200).send({ data: posts });

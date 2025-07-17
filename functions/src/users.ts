@@ -6,9 +6,7 @@ import express, { Request, Response } from "express";
 import { authenticate, AuthenticatedRequest } from "./middleware";
 import * as logger from "firebase-functions/logger";
 
-if (admin.apps.length === 0) {
-    admin.initializeApp();
-}
+admin.initializeApp();
 
 interface UserDocument {
     id: string;

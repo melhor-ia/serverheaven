@@ -1,9 +1,8 @@
 // Implementa /purpleStone/Sistema de Posts e Feed.md
 
 import * as express from "express";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getFirestore, FieldValue, FieldPath } from "firebase-admin/firestore";
 import { authenticate, AuthenticatedRequest } from "./middleware";
-import * as admin from "firebase-admin";
 
 // Based on /purpleStone/_legacy/Modelagem de Dados.md
 interface Post {
@@ -134,29 +133,52 @@ router.get("/", async (req, res) => {
 
         // Gather author IDs to fetch their data
         const userIds = new Set<string>();
+        const serverIds = new Set<string>();
         postsSnapshot.docs.forEach(doc => {
             const post = doc.data() as Post;
             if (post.author_user_id) {
                 userIds.add(post.author_user_id);
             }
+            if (post.author_server_id) {
+                serverIds.add(post.author_server_id);
+            }
         });
 
-        // Fetch author data in a batch
-        let authors: { [key: string]: any } = {};
-        if (userIds.size > 0) {
-            const usersSnapshot = await db.collection("users").where(admin.firestore.FieldPath.documentId(), 'in', Array.from(userIds)).get();
+        // Fetch author data in parallel
+        const authors: { [key: string]: any } = {};
+
+        const userPromises = userIds.size > 0 ?
+            db.collection("users").where(FieldPath.documentId(), 'in', Array.from(userIds)).get() :
+            Promise.resolve(null);
+
+        const serverPromises = serverIds.size > 0 ?
+            db.collection("servers").where(FieldPath.documentId(), 'in', Array.from(serverIds)).get() :
+            Promise.resolve(null);
+        
+        const [usersSnapshot, serversSnapshot] = await Promise.all([userPromises, serverPromises]);
+
+        if (usersSnapshot) {
             usersSnapshot.forEach(userDoc => {
-                const userData = userDoc.data();
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { email, ...publicProfile } = userData;
-                authors[userDoc.id] = publicProfile;
+                if (userDoc.exists) {
+                    const { email, ...publicProfile } = userDoc.data();
+                    authors[userDoc.id] = { ...publicProfile, type: 'user' };
+                }
+            });
+        }
+
+        if (serversSnapshot) {
+            serversSnapshot.forEach(serverDoc => {
+                if (serverDoc.exists) {
+                    authors[serverDoc.id] = { ...serverDoc.data(), type: 'server' };
+                }
             });
         }
         
         // Map posts and embed author info
         const posts = postsSnapshot.docs.map(doc => {
             const postData = doc.data() as Post;
-            const author = postData.author_user_id ? authors[postData.author_user_id] : null;
+            const authorId = postData.author_user_id || postData.author_server_id;
+            const author = authorId ? authors[authorId] : null;
 
             return {
                 id: doc.id,
@@ -165,7 +187,7 @@ router.get("/", async (req, res) => {
                 likes: postData.like_count || 0,
                 commentCount: postData.comment_count || 0,
                 createdAt: postData.created_at.toDate(),
-                server: postData.author_server_id || null
+                server: postData.author_server_id || null // Keep this for now for client compatibility
             };
         });
 

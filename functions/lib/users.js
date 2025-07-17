@@ -43,9 +43,7 @@ const firestore_1 = require("firebase-admin/firestore");
 const express_1 = __importDefault(require("express"));
 const middleware_1 = require("./middleware");
 const logger = __importStar(require("firebase-functions/logger"));
-if (admin.apps.length === 0) {
-    admin.initializeApp();
-}
+admin.initializeApp();
 const router = express_1.default.Router();
 // GET /users/id/:userId - Get user profile by ID
 router.get("/id/:userId", async (req, res) => {
