@@ -15,7 +15,7 @@ interface UserProfile {
 }
 
 export default function MyProfilePage() {
-    const { user, loading: authLoading } = useAuth();
+    const { currentUser, loading: authLoading } = useAuth();
     const router = useRouter();
     
     const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -27,18 +27,18 @@ export default function MyProfilePage() {
     const [avatarUrl, setAvatarUrl] = useState("");
 
     useEffect(() => {
-        if (!authLoading && !user) {
+        if (!authLoading && !currentUser) {
             router.push('/'); // Redirect to home if not logged in
         }
-    }, [user, authLoading, router]);
+    }, [currentUser, authLoading, router]);
 
     useEffect(() => {
-        if (user) {
+        if (currentUser) {
             const fetchProfile = async () => {
                 setLoading(true);
                 setError(null);
                 try {
-                    const response = await fetch(`/api/users/profile/${user.uid}`);
+                    const response = await fetch(`/api/users/profile/${currentUser.uid}`);
                     if (!response.ok) {
                         const errorData = await response.json();
                         throw new Error(errorData.message || "Failed to fetch profile");
@@ -61,13 +61,13 @@ export default function MyProfilePage() {
             };
             fetchProfile();
         }
-    }, [user]);
+    }, [currentUser]);
 
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         try {
-            const token = await user?.getIdToken();
+            const token = await currentUser?.getIdToken();
             if (!token) throw new Error("Not authenticated");
 
             const response = await fetch(`/api/users/profile`, {
@@ -97,7 +97,7 @@ export default function MyProfilePage() {
     };
 
     if (authLoading || loading) return <div>Loading...</div>;
-    if (!user) return <div>Please log in to see your profile.</div>;
+    if (!currentUser) return <div>Please log in to see your profile.</div>;
     if (error) return <div>Error: {error}</div>;
 
     return (
@@ -106,7 +106,7 @@ export default function MyProfilePage() {
             {profile && (
                 <div>
                     <p>Username: {profile.username}</p>
-                    <p>Email: {user.email}</p>
+                    <p>Email: {currentUser.email}</p>
                     <p>Reputation: {profile.reputation_score}</p>
                 </div>
             )}

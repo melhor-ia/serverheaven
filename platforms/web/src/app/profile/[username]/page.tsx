@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import NextImage from 'next/image';
 import { useParams } from 'next/navigation';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/Button';
@@ -73,7 +74,12 @@ const ProfileHeader: FC<ProfileHeaderProps> = ({ user, isOwner, isEditing, onEdi
         <header className="relative h-[40vh] min-h-[300px] w-full mb-8">
             <div className="group absolute inset-0 h-full w-full">
                 {hasCover ? (
-                    <img src={newCoverPreview || user.cover_url} alt={`${user.display_name}'s cover`} className="h-full w-full object-cover" />
+                    <NextImage 
+                        src={newCoverPreview || user.cover_url} 
+                        alt={`${user.display_name}'s cover`} 
+                        fill
+                        className="object-cover" 
+                    />
                 ) : (
                     <div className="h-full w-full">
                         <AnimatedGridBackground />
@@ -120,7 +126,12 @@ const ProfileHeader: FC<ProfileHeaderProps> = ({ user, isOwner, isEditing, onEdi
             <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-full px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
                     <div className="relative h-32 w-32 md:h-40 md:w-40 rounded-full border-4 border-background bg-background flex-shrink-0 shadow-lg -mt-12 md:-mt-0">
-                        <img src={newAvatarPreview || user.avatar_url} alt={`${user.display_name}'s avatar`} className="w-full h-full rounded-full object-cover" />
+                        <NextImage 
+                            src={newAvatarPreview || user.avatar_url} 
+                            alt={`${user.display_name}'s avatar`} 
+                            fill
+                            className="rounded-full object-cover" 
+                        />
                         {isEditing && (
                             <>
                                 <Button variant="outline" size="icon" className="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 border-white/30 rounded-full h-10 w-10" onClick={() => avatarInputRef.current?.click()}>

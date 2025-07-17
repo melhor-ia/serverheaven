@@ -8,6 +8,26 @@ const nextConfig = {
           },
         ]
       },
+    images: {
+        remotePatterns: [
+          {
+            protocol: 'http',
+            hostname: 'localhost',
+            port: '9199',
+            pathname: '/v0/b/**',
+          },
+          {
+            protocol: 'https',
+            hostname: 'firebasestorage.googleapis.com',
+            pathname: '/v0/b/**',
+          },
+          {
+            protocol: 'https',
+            hostname: 'storage.googleapis.com',
+            pathname: '/**',
+          },
+        ],
+      },
 };
 
 export default nextConfig;

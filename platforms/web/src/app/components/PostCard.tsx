@@ -1,5 +1,6 @@
 "use client";
 
+import NextImage from 'next/image';
 import { Post } from '@/lib/types';
 import { FaUserCircle } from 'react-icons/fa';
 
@@ -14,7 +15,13 @@ const PostCard = ({ post }: PostCardProps) => {
         <div className="postcard-panel rounded-lg p-4 sm:p-6 my-4 w-full max-w-2xl mx-auto">
             <div className="flex items-start space-x-4">
                 {post.author && post.author.avatar_url ? (
-                    <img src={post.author.avatar_url} alt={post.author.display_name || 'author avatar'} className="h-10 w-10 rounded-full object-cover" />
+                    <NextImage 
+                        src={post.author.avatar_url} 
+                        alt={post.author.display_name || 'author avatar'} 
+                        width={40}
+                        height={40}
+                        className="h-10 w-10 rounded-full object-cover" 
+                    />
                 ) : (
                     <FaUserCircle className="text-muted-foreground h-10 w-10" />
                 )}

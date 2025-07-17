@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import NextImage from 'next/image';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/Button';
 import { Send, Bold, Italic, Underline } from 'lucide-react';
@@ -316,7 +317,13 @@ const PostForm = ({ onPostCreated, className }: PostFormProps) => {
         <div className={cn("hud-panel rounded-lg overflow-hidden p-4 sm:p-6 mb-8 transition-all duration-300", { "py-3 sm:py-3": !isExpanded }, className)}>
             <form onSubmit={handleSubmit}>
                 <div className="flex items-start space-x-4">
-                    <img src={currentUser.photoURL || '/default-avatar.png'} alt="Your avatar" className="h-10 w-10 rounded-full" />
+                    <NextImage 
+                        src={currentUser.photoURL || '/default-avatar.png'} 
+                        alt="Your avatar" 
+                        width={40}
+                        height={40}
+                        className="h-10 w-10 rounded-full object-cover" 
+                    />
                     <div className="flex-1" onFocus={handleFocus} onBlur={handleBlur}>
                          <EditorProvider 
                             key={isExpanded ? 'expanded' : 'collapsed'}

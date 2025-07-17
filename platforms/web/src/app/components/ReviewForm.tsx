@@ -10,7 +10,7 @@ interface ReviewFormProps {
 }
 
 const ReviewForm: React.FC<ReviewFormProps> = ({ targetId, targetType, onReviewSubmitted }) => {
-  const { user } = useAuth();
+  const { currentUser } = useAuth();
   const [rating, setRating] = useState(0);
   const [content, setContent] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +18,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ targetId, targetType, onReviewS
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
+    if (!currentUser) {
       setError("You must be logged in to submit a review.");
       return;
     }
@@ -31,7 +31,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ targetId, targetType, onReviewS
     setError(null);
 
     try {
-      const token = await user.getIdToken();
+      const token = await currentUser.getIdToken();
       const response = await fetch('/api/reviews', {
         method: 'POST',
         headers: {
@@ -62,7 +62,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ targetId, targetType, onReviewS
     }
   };
 
-  if (!user) {
+  if (!currentUser) {
     return <p className="text-center text-gray-400">You must be logged in to leave a review.</p>;
   }
 

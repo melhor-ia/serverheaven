@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import Image from 'next/image';
 import { Server } from 'lucide-react';
 
 type User = {
@@ -88,7 +89,13 @@ export const MentionList = forwardRef<MentionListHandle, MentionListProps>((prop
           >
             {isUser(item) ? (
                 <>
-                    <img src={item.avatar_url || '/default-avatar.png'} alt={item.username} className="h-8 w-8 rounded-full"/>
+                    <Image 
+                        src={item.avatar_url || '/default-avatar.png'} 
+                        alt={item.username} 
+                        width={32}
+                        height={32}
+                        className="h-8 w-8 rounded-full object-cover"
+                    />
                     <div>
                         <p className="font-bold text-white">{item.display_name}</p>
                         <p className="text-sm text-muted-foreground">@{item.username}</p>

@@ -11,7 +11,7 @@ import { auth } from "@/lib/firebase-config";
 import Link from "next/link";
 
 export default function Auth() {
-    const { user } = useAuth();
+    const { currentUser } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
@@ -47,10 +47,10 @@ export default function Auth() {
         }
     };
 
-    if (user) {
+    if (currentUser) {
         return (
             <div className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-8 mt-4">
-                <p>Welcome, {user.email}</p>
+                <p>Welcome, {currentUser.email}</p>
                 <Link href="/profile">My Profile</Link>
                 <br />
                 <button onClick={handleSignOut} className="w-full p-3 mt-4 mb-2 bg-transparent border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white rounded-md font-semibold cursor-pointer">Sign Out</button>

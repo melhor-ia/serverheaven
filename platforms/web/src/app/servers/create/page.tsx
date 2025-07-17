@@ -5,7 +5,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function CreateServerPage() {
-    const { user } = useAuth();
+    const { currentUser } = useAuth();
     const router = useRouter();
     const [serverName, setServerName] = useState('');
     const [description, setDescription] = useState('');
@@ -15,13 +15,13 @@ export default function CreateServerPage() {
         e.preventDefault();
         setError(null);
 
-        if (!user) {
+        if (!currentUser) {
             setError("You must be logged in to create a server.");
             return;
         }
 
         try {
-            const token = await user.getIdToken();
+            const token = await currentUser.getIdToken();
             const response = await fetch('/api/servers', {
                 method: 'POST',
                 headers: {

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, KeyboardEvent, useRef } from 'react';
+import NextImage from 'next/image';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/badge';
 import { AnimatedGridBackground } from '../../components/ui/AnimatedGridBackground';
@@ -128,7 +129,12 @@ const ImageUploader = ({ id, label, currentImage, onImageSelect, aspect }: { id:
                 className={`relative w-full ${aspect} bg-black/30 border-2 border-dashed rounded-lg flex items-center justify-center text-muted-foreground overflow-hidden group transition-all duration-300 cursor-pointer ${isDragging ? 'border-emerald-500' : 'border-border hover:border-emerald-500/50'}`}
             >
                 {currentImage ? (
-                     <img src={currentImage} alt={label} className="w-full h-full object-cover" />
+                     <NextImage 
+                        src={currentImage} 
+                        alt={label} 
+                        fill
+                        className="object-cover" 
+                    />
                 ) : (
                     <div className="text-center p-4">
                         <ImageUp className="mx-auto h-10 w-10 mb-2" />

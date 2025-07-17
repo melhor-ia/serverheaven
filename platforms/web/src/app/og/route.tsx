@@ -35,6 +35,7 @@ export async function GET(request: Request) {
         {/* Background image */}
         <img
           src={imageUrl}
+          alt="ServerHeaven background"
           style={{
             position: "absolute",
             width: "100%",

@@ -13,7 +13,6 @@ import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } f
 import { DiscordIcon } from '../../components/ui/DiscordIcon';
 import Link from 'next/link';
 import { FcGoogle } from 'react-icons/fc';
-import { useRouter } from 'next/navigation';
 
 interface VerifyTokenResponse {
     success: boolean;

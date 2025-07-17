@@ -2,6 +2,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Button } from './ui/Button';
 import { Rss, Search, Server, Bell, Mail, User, LogOut } from 'lucide-react';
@@ -89,7 +90,13 @@ const AppHeader = () => {
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <div className="flex items-center gap-3 group cursor-pointer p-2 rounded-lg hover:bg-white/5 transition-colors">
-                                        <img src={currentUser.photoURL || '/default-avatar.png'} alt="User Avatar" className="h-10 w-10 rounded-full border-2 border-border group-hover:border-emerald-500 transition-colors" />
+                                        <Image 
+                                            src={currentUser.photoURL || '/default-avatar.png'} 
+                                            alt="User Avatar" 
+                                            width={40}
+                                            height={40}
+                                            className="h-10 w-10 rounded-full border-2 border-border group-hover:border-emerald-500 transition-colors object-cover" 
+                                        />
                                         <div className="text-left hidden lg:block">
                                             <p className="font-bold text-white group-hover:text-emerald-400 transition-colors">{currentUser.displayName}</p>
                                             <p className="text-xs font-mono text-muted-foreground">@{username || currentUser.email?.split('@')[0]}</p>
