@@ -43,6 +43,10 @@ app.use("/users", usersRouter);
 app.use("/servers", serversRouter);
 app.use("/reviews", reviewsRouter);
 app.use("/posts", postsRouter);
+app.use("/api/users", usersRouter);
+app.use("/api/servers", serversRouter);
+app.use("/api/reviews", reviewsRouter);
+app.use("/api/posts", postsRouter);
 
 app.post("/seed", async (req, res) => {
     try {

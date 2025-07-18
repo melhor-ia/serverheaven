@@ -25,6 +25,12 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/**",
+        "function": "api"
+      }
     ]
   },
   "storage": {
@@ -43,7 +49,7 @@
       "port": 5001
     },
     "firestore": {
-      "port": 8082
+      "port": 8081
     },
     "hosting": {
       "port": 5000

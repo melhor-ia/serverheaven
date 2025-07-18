@@ -82,6 +82,10 @@ app.use("/users", users_1.default);
 app.use("/servers", servers_1.default);
 app.use("/reviews", reviews_1.default);
 app.use("/posts", posts_1.default);
+app.use("/api/users", users_1.default);
+app.use("/api/servers", servers_1.default);
+app.use("/api/reviews", reviews_1.default);
+app.use("/api/posts", posts_1.default);
 app.post("/seed", async (req, res) => {
     try {
         const result = await (0, seed_1.seedDatabase)();
