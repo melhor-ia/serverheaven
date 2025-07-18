@@ -7,6 +7,8 @@ import PostCard from '@/app/components/PostCard';
 import { Post } from '@/lib/types';
 import { useAuth } from '@/app/contexts/AuthContext';
 import dynamic from 'next/dynamic';
+import { ProfileSidebar } from '../components/ProfileSidebar';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const PostForm = dynamic(() => import('@/app/components/PostForm'), { ssr: false });
 
@@ -15,6 +17,7 @@ const FeedPage = () => {
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
     useEffect(() => {
         const fetchFeedData = async () => {
@@ -61,10 +64,34 @@ const FeedPage = () => {
         }
     };
 
+    const handleCardClick = (post: Post) => {
+        setSelectedPost(post);
+    };
+
+    const handleCloseSidebar = () => {
+        setSelectedPost(null);
+    };
+
     return (
         <div className="bg-background text-foreground min-h-screen">
             <AppHeader />
-            <main className="relative z-10 pt-20">
+            <AnimatePresence>
+                {selectedPost && (
+                     <motion.div
+                        initial={{ x: '-100%' }}
+                        animate={{ x: 0 }}
+                        exit={{ x: '-100%' }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    >
+                        <ProfileSidebar post={selectedPost} onClose={handleCloseSidebar} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+            <motion.main 
+                className="relative z-10 pt-20"
+                animate={{ marginLeft: selectedPost ? '320px' : '0px' }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            >
                 <div className="px-4 sm:px-6 lg:px-8 pt-8">
                     <div className="flex flex-col md:flex-row gap-8 justify-center">
 
@@ -82,6 +109,7 @@ const FeedPage = () => {
                                         <PostCard
                                             key={post.id}
                                             post={post}
+                                            onCardClick={() => handleCardClick(post)}
                                         />
                                     ))
                                 ) : (
@@ -100,7 +128,7 @@ const FeedPage = () => {
                 <footer className="text-center p-8 text-muted-foreground font-mono text-xs mt-16">
                     ServerHeaven v0.1.0 - All rights reserved.
                 </footer>
-            </main>
+            </motion.main>
         </div>
     );
 };
