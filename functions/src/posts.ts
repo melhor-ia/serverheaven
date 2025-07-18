@@ -252,6 +252,47 @@ router.post("/:postId/like", authenticate, async (req: AuthenticatedRequest, res
     }
 });
 
+// GET /posts/:postId/comments - Get all comments for a post
+router.get("/:postId/comments", async (req, res) => {
+    try {
+        const { postId } = req.params;
+
+        const commentsSnapshot = await db.collection("posts").doc(postId).collection("interactions")
+            .where('type', '==', 'comment')
+            .orderBy('created_at', 'asc')
+            .get();
+
+        if (commentsSnapshot.empty) {
+            res.status(200).send({ data: [] });
+            return;
+        }
+
+        const comments = commentsSnapshot.docs.map(doc => doc.data());
+        
+        // Get user info for each comment author
+        const userIds = [...new Set(comments.map(c => c.user_id))];
+        const usersSnapshot = await db.collection("users").where(FieldPath.documentId(), 'in', userIds).get();
+        
+        const authors: { [key: string]: any } = {};
+        usersSnapshot.forEach(userDoc => {
+            const { email, ...publicProfile } = userDoc.data();
+            authors[userDoc.id] = publicProfile;
+        });
+
+        const populatedComments = comments.map(comment => ({
+            ...comment,
+            author: authors[comment.user_id] || { display_name: "Anonymous" }
+        }));
+        
+        res.status(200).send({ data: populatedComments });
+
+    } catch (error) {
+        console.error("Error fetching comments:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+
+
 // POST /posts/:postId/comment - Comment on a post
 router.post("/:postId/comment", authenticate, async (req: AuthenticatedRequest, res) => {
     try {

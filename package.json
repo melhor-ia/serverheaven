@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "serve": "firebase serve",
+    "serve": "firebase emulators:start --import=./.firebase/emulator-data --export-on-exit=./.firebase/emulator-data",
+    "serve:clean": "firebase emulators:start",
     "deploy": "firebase deploy"
   },
   "dependencies": {

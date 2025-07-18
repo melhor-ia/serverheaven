@@ -49,6 +49,7 @@ Representa uma interação de um usuário com um post (curtida ou comentário).
     *   A API (`POST /posts`) valida a autoria e cria um novo documento na coleção `posts`.
 2.  **Visualização do Feed**:
     *   A página `/feed` busca os posts mais recentes da API (`GET /posts`).
+    *   A API, por sua vez, não apenas retorna os posts, mas também busca os dados públicos dos autores (sejam usuários ou servidores) e os anexa a cada post, otimizando a exibição no frontend.
     *   Cada post é renderizado usando o componente `PostCard`.
 3.  **Interações**:
     *   **Curtir**: Um usuário clica no botão de curtir em um `PostCard`. A API (`POST /posts/:postId/like`) cria ou remove uma interação do tipo `like` e atualiza o `like_count` do post de forma atômica.
@@ -59,11 +60,10 @@ Representa uma interação de um usuário com um post (curtida ou comentário).
 ## 4. APIs / Interfaces
 
 *   `POST /posts`: Cria um novo post.
-*   `GET /posts`: Retorna uma lista de posts para o feed.
+*   `GET /posts`: Retorna uma lista de posts para o feed, com os dados do autor (usuário ou servidor) já anexados a cada post.
 *   `GET /posts/:postId`: Retorna os detalhes de um post específico.
 *   `POST /posts/:postId/like`: Adiciona ou remove uma curtida de um post.
 *   `POST /posts/:postId/comment`: Adiciona um comentário a um post.
-*   `POST /seed`: (Apenas para desenvolvimento) Popula o banco de dados com posts de exemplo.
 
 ---
 

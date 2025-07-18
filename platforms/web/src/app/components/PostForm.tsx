@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import NextImage from 'next/image';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/Button';
@@ -19,6 +19,18 @@ import tippy, { Instance as TippyInstance } from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
 import { SuggestionOptions, SuggestionProps } from '@tiptap/suggestion';
 import { AnimatePresence, motion } from 'framer-motion';
+
+const EditorFocusController = () => {
+  const { editor } = useCurrentEditor();
+
+  useEffect(() => {
+    if (editor && !editor.isFocused) {
+      editor.chain().focus('end').run();
+    }
+  }, [editor]);
+
+  return null;
+};
 
 interface UserSearchResult {
     id: string;
@@ -343,6 +355,7 @@ const PostForm = ({ onPostCreated, className }: PostFormProps) => {
                                 },
                             }}
                             slotBefore={isExpanded ? <MenuBar /> : undefined}
+                            slotAfter={isExpanded ? <EditorFocusController /> : undefined}
                             immediatelyRender={false}
                         >
                             {/* The editor content is rendered here */}

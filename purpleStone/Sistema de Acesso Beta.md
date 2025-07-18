@@ -52,7 +52,7 @@ O sistema opera principalmente através de dois fluxos distintos, baseados na es
     *   A função `betaSignup` valida os dados de entrada.
     *   Gera um `confirmationToken` seguro.
     *   Cria um novo documento na coleção `beta-access` com `status: 'pending'` e o token de confirmação.
-    *   Envia um e-mail de boas-vindas para o usuário contendo um link de confirmação para a página de configuração do perfil (`/beta/setup?token=...`).
+    *   Envia um e-mail de boas-vindas para o usuário contendo um link de confirmação para a página de configuração do perfil (`/beta/setup?token=...`). Para garantir a entrega, o sistema utiliza um webhook de backup como fallback ao serviço de e-mail principal.
 4.  **Verificação do Usuário:**
     *   O usuário clica no link do e-mail e é direcionado para a página de configuração.
     *   O frontend extrai o token da URL e chama a Cloud Function `verifyBetaToken`.
