@@ -29,6 +29,29 @@ interface UserDocument {
     status: "active" | "suspended" | "banned";
 }
 
+// eslint-disable-next-line require-jsdoc
+const preparePublicProfile = (userData: UserDocument) => {
+  const profileWithSerializableDates: any = { ...userData };
+
+  // Convert all Timestamp fields to ISO strings so they can be
+  // correctly parsed by the client-side `new Date()` constructor.
+  if (userData.created_at && typeof userData.created_at.toDate === "function") {
+    profileWithSerializableDates.created_at = userData.created_at.toDate().toISOString();
+  }
+  if (userData.updated_at && typeof userData.updated_at.toDate === "function") {
+    profileWithSerializableDates.updated_at = userData.updated_at.toDate().toISOString();
+  }
+  if (userData.supporter_since && typeof userData.supporter_since.toDate === "function") {
+    profileWithSerializableDates.supporter_since = userData.supporter_since.toDate().toISOString();
+  }
+
+  // The 'email' property is sensitive and should not be sent to the client.
+  // We explicitly delete it from the object before sending.
+  delete profileWithSerializableDates.email;
+
+  return profileWithSerializableDates;
+};
+
 const router = express.Router();
 
 // GET /users/id/:userId - Get user profile by ID
@@ -44,9 +67,7 @@ router.get("/id/:userId", async (req: Request, res: Response) => {
         }
 
         const userData = userDoc.data() as UserDocument;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { email, ...publicProfile } = userData;
-
+        const publicProfile = preparePublicProfile(userData);
         res.status(200).send(publicProfile);
     } catch (error) {
         logger.error("Error fetching user profile by ID:", error);
@@ -69,9 +90,7 @@ router.get("/username/:username", async (req: Request, res: Response) => {
 
         const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data() as UserDocument;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { email, ...publicProfile } = userData;
-
+        const publicProfile = preparePublicProfile(userData);
         res.status(200).send(publicProfile);
     } catch (error) {
         logger.error("Error fetching user profile by username:", error);
@@ -133,13 +152,15 @@ router.get("/:userId/posts", async (req: Request, res: Response) => {
         // Map posts and embed author info, transforming to match frontend model
         const posts = querySnapshot.docs.map(doc => {
             const postData = doc.data();
+            const authorPublicProfile = preparePublicProfile(authorProfile as UserDocument);
+
             return {
                 id: doc.id,
-                author: authorProfile,
+                author: authorPublicProfile,
                 content: postData.content,
                 likes: postData.like_count || 0,
                 commentCount: postData.comment_count || 0,
-                createdAt: postData.created_at.toDate(),
+                createdAt: postData.created_at.toDate().toISOString(),
                 server: postData.author_server_id || null, // Basic server info
                 // Fields not on the frontend model are implicitly excluded
             };
