@@ -11,7 +11,23 @@ import { Skeleton } from './ui/skeleton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { auth } from '@/lib/firebase-config';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+
+interface Notification {
+  id: string;
+  sender_user_id: string;
+  type: 'like' | 'comment';
+  resource_id: string;
+  read: boolean;
+  created_at: {
+    _seconds: number;
+    _nanoseconds: number;
+  };
+  sender?: { // Optional sender info
+      display_name: string;
+      photoURL: string;
+  };
+}
 
 const navLinks = [
     { href: '/feed', label: 'Feed', icon: Rss },
@@ -22,20 +38,67 @@ const AppHeader = () => {
     const pathname = usePathname();
     const { currentUser, loading } = useAuth();
     const [username, setUsername] = useState<string | null>(null);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [unreadCount, setUnreadCount] = useState(0);
     const router = useRouter();
+
+    const fetchNotifications = useCallback(async () => {
+        if (!currentUser) return;
+        try {
+            const token = await currentUser.getIdToken();
+            const response = await fetch('/api/notifications', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const { data } = await response.json();
+            if (data) {
+                setNotifications(data);
+                setUnreadCount(data.filter((n: Notification) => !n.read).length);
+            }
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        }
+    }, [currentUser]);
 
     useEffect(() => {
         if (currentUser) {
+            // Fetch username
             fetch(`/api/users/id/${currentUser.uid}`)
                 .then(res => res.json())
                 .then(data => {
-                    if (data && data.username) {
-                        setUsername(data.username);
-                    }
+                    if (data && data.username) setUsername(data.username);
                 })
                 .catch(console.error);
+            
+            // Fetch initial notifications
+            fetchNotifications();
         }
-    }, [currentUser]);
+    }, [currentUser, fetchNotifications]);
+    
+    const handleNotificationClick = async (notification: Notification) => {
+        // Navigate to the user's own profile page
+        if (username) {
+            router.push(`/profile/${username}`);
+        } else {
+            // Fallback or maybe you want to fetch it if not available
+            router.push('/profile');
+        }
+        
+        if (!notification.read) {
+            try {
+                const token = await currentUser?.getIdToken();
+                await fetch(`/api/notifications/${notification.id}/read`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                });
+                // Optimistically update the UI
+                setNotifications(prev => prev.map(n => n.id === notification.id ? { ...n, read: true } : n));
+                setUnreadCount(prev => prev - 1);
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        }
+    };
+
 
     const handleSignOut = async () => {
         await auth.signOut();
@@ -69,9 +132,41 @@ const AppHeader = () => {
                         <Button variant="ghost" size="icon" className="group">
                              <Search className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-emerald-400" />
                         </Button>
-                         <Button variant="ghost" size="icon" className="group">
-                             <Bell className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-emerald-400" />
-                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="group relative">
+                                    <Bell className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-emerald-400" />
+                                    {unreadCount > 0 && (
+                                        <span className="absolute top-1 right-1 h-4 w-4 flex items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                                            {unreadCount}
+                                        </span>
+                                    )}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-80 bg-background/80 backdrop-blur-lg border-border" align="end">
+                                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                {notifications.length > 0 ? (
+                                    notifications.map(notification => (
+                                        <DropdownMenuItem key={notification.id} onSelect={() => handleNotificationClick(notification)} className="cursor-pointer flex items-start gap-3 p-2">
+                                            {/* Icon can be dynamic based on type */}
+                                            <div className={`mt-1 h-2 w-2 rounded-full ${!notification.read ? 'bg-emerald-400' : 'bg-transparent'}`}></div>
+                                            <div className="flex-1">
+                                                <p className="text-sm">
+                                                    <strong>{notification.sender?.display_name || 'Someone'}</strong>
+                                                    {notification.type === 'like' ? ' liked your post.' : ' commented on your post.'}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {new Date(notification.created_at._seconds * 1000).toLocaleString()}
+                                                </p>
+                                            </div>
+                                        </DropdownMenuItem>
+                                    ))
+                                ) : (
+                                    <DropdownMenuItem disabled>No new notifications</DropdownMenuItem>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                          <Button variant="ghost" size="icon" className="group">
                             <Mail className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-emerald-400" />
                         </Button>

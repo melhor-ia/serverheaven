@@ -240,6 +240,23 @@ router.post("/:postId/like", authenticate, async (req: AuthenticatedRequest, res
                     created_at: FieldValue.serverTimestamp()
                 });
                 transaction.update(postRef, { like_count: FieldValue.increment(1) });
+                
+                // Create notification
+                const postData = postDoc.data();
+                if (postData?.author_user_id && postData.author_user_id !== userId) {
+                    const notificationRef = db.collection("notifications").doc();
+                    transaction.set(notificationRef, {
+                        id: notificationRef.id,
+                        recipient_user_id: postData.author_user_id,
+                        sender_user_id: userId,
+                        type: 'like',
+                        resource_id: postId,
+                        resource_type: 'post',
+                        read: false,
+                        created_at: FieldValue.serverTimestamp()
+                    });
+                }
+
                 res.status(201).send({ data: { message: "Post liked successfully" } });
             }
         });
@@ -332,6 +349,22 @@ router.post("/:postId/comment", authenticate, async (req: AuthenticatedRequest, 
                 created_at: FieldValue.serverTimestamp()
             });
             transaction.update(postRef, { comment_count: FieldValue.increment(1) });
+
+            // Create notification
+            const postData = postDoc.data();
+            if (postData?.author_user_id && postData.author_user_id !== userId) {
+                const notificationRef = db.collection("notifications").doc();
+                transaction.set(notificationRef, {
+                    id: notificationRef.id,
+                    recipient_user_id: postData.author_user_id,
+                    sender_user_id: userId,
+                    type: 'comment',
+                    resource_id: postId,
+                    resource_type: 'post',
+                    read: false,
+                    created_at: FieldValue.serverTimestamp()
+                });
+            }
         });
         
         const newComment = (await commentRef.get()).data();

@@ -51,6 +51,7 @@ const servers_1 = __importDefault(require("./servers"));
 const reviews_1 = __importStar(require("./reviews"));
 Object.defineProperty(exports, "onReviewCreate", { enumerable: true, get: function () { return reviews_1.onReviewCreate; } });
 const posts_1 = __importDefault(require("./posts"));
+const notifications_1 = __importDefault(require("./notifications"));
 const seed_1 = require("./seed");
 if (admin.apps.length === 0) {
     admin.initializeApp();
@@ -82,10 +83,12 @@ app.use("/users", users_1.default);
 app.use("/servers", servers_1.default);
 app.use("/reviews", reviews_1.default);
 app.use("/posts", posts_1.default);
+app.use("/notifications", notifications_1.default);
 app.use("/api/users", users_1.default);
 app.use("/api/servers", servers_1.default);
 app.use("/api/reviews", reviews_1.default);
 app.use("/api/posts", posts_1.default);
+app.use("/api/notifications", notifications_1.default);
 app.post("/seed", async (req, res) => {
     try {
         const result = await (0, seed_1.seedDatabase)();

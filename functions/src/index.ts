@@ -7,6 +7,7 @@ import usersRouter, { onUserCreate } from "./users";
 import serversRouter from "./servers";
 import reviewsRouter, { onReviewCreate } from "./reviews";
 import postsRouter from "./posts";
+import notificationsRouter from "./notifications";
 import { seedDatabase } from "./seed";
 
 if (admin.apps.length === 0) {
@@ -43,10 +44,12 @@ app.use("/users", usersRouter);
 app.use("/servers", serversRouter);
 app.use("/reviews", reviewsRouter);
 app.use("/posts", postsRouter);
+app.use("/notifications", notificationsRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/servers", serversRouter);
 app.use("/api/reviews", reviewsRouter);
 app.use("/api/posts", postsRouter);
+app.use("/api/notifications", notificationsRouter);
 
 app.post("/seed", async (req, res) => {
     try {

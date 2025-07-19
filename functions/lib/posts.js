@@ -224,6 +224,21 @@ router.post("/:postId/like", middleware_1.authenticate, async (req, res) => {
                     created_at: firestore_1.FieldValue.serverTimestamp()
                 });
                 transaction.update(postRef, { like_count: firestore_1.FieldValue.increment(1) });
+                // Create notification
+                const postData = postDoc.data();
+                if (postData?.author_user_id && postData.author_user_id !== userId) {
+                    const notificationRef = db.collection("notifications").doc();
+                    transaction.set(notificationRef, {
+                        id: notificationRef.id,
+                        recipient_user_id: postData.author_user_id,
+                        sender_user_id: userId,
+                        type: 'like',
+                        resource_id: postId,
+                        resource_type: 'post',
+                        read: false,
+                        created_at: firestore_1.FieldValue.serverTimestamp()
+                    });
+                }
                 res.status(201).send({ data: { message: "Post liked successfully" } });
             }
         });
@@ -303,6 +318,21 @@ router.post("/:postId/comment", middleware_1.authenticate, async (req, res) => {
                 created_at: firestore_1.FieldValue.serverTimestamp()
             });
             transaction.update(postRef, { comment_count: firestore_1.FieldValue.increment(1) });
+            // Create notification
+            const postData = postDoc.data();
+            if (postData?.author_user_id && postData.author_user_id !== userId) {
+                const notificationRef = db.collection("notifications").doc();
+                transaction.set(notificationRef, {
+                    id: notificationRef.id,
+                    recipient_user_id: postData.author_user_id,
+                    sender_user_id: userId,
+                    type: 'comment',
+                    resource_id: postId,
+                    resource_type: 'post',
+                    read: false,
+                    created_at: firestore_1.FieldValue.serverTimestamp()
+                });
+            }
         });
         const newComment = (await commentRef.get()).data();
         res.status(201).send({ data: newComment });
