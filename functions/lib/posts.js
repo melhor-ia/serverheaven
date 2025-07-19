@@ -37,6 +37,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express = __importStar(require("express"));
 const firestore_1 = require("firebase-admin/firestore");
 const middleware_1 = require("./middleware");
+const users_1 = require("./users");
 const router = express.Router();
 const db = (0, firestore_1.getFirestore)();
 // POST /posts - Create a new post
@@ -152,7 +153,8 @@ router.get("/", async (req, res) => {
         if (usersSnapshot) {
             usersSnapshot.forEach(userDoc => {
                 if (userDoc.exists) {
-                    const { email, ...publicProfile } = userDoc.data();
+                    const userData = userDoc.data();
+                    const publicProfile = (0, users_1.preparePublicProfile)(userData);
                     authors[userDoc.id] = { ...publicProfile, type: 'user' };
                 }
             });

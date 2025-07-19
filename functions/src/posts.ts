@@ -3,6 +3,7 @@
 import * as express from "express";
 import { getFirestore, FieldValue, FieldPath } from "firebase-admin/firestore";
 import { authenticate, AuthenticatedRequest } from "./middleware";
+import { UserDocument, preparePublicProfile } from "./users";
 
 // Based on /purpleStone/_legacy/Modelagem de Dados.md
 interface Post {
@@ -160,7 +161,8 @@ router.get("/", async (req, res) => {
         if (usersSnapshot) {
             usersSnapshot.forEach(userDoc => {
                 if (userDoc.exists) {
-                    const { email, ...publicProfile } = userDoc.data();
+                    const userData = userDoc.data() as UserDocument;
+                    const publicProfile = preparePublicProfile(userData);
                     authors[userDoc.id] = { ...publicProfile, type: 'user' };
                 }
             });

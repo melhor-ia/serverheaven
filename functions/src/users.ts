@@ -8,7 +8,7 @@ import * as logger from "firebase-functions/logger";
 
 admin.initializeApp();
 
-interface UserDocument {
+export interface UserDocument {
     id: string;
     username: string;
     username_lower: string; // For case-insensitive queries
@@ -30,7 +30,7 @@ interface UserDocument {
 }
 
 // eslint-disable-next-line require-jsdoc
-const preparePublicProfile = (userData: UserDocument) => {
+export const preparePublicProfile = (userData: UserDocument) => {
   const profileWithSerializableDates: any = { ...userData };
 
   // Convert all Timestamp fields to ISO strings so they can be

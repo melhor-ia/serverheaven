@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.onUserCreate = void 0;
+exports.onUserCreate = exports.preparePublicProfile = void 0;
 const functions = __importStar(require("firebase-functions/v1"));
 const admin = __importStar(require("firebase-admin"));
 const firestore_1 = require("firebase-admin/firestore");
@@ -63,6 +63,7 @@ const preparePublicProfile = (userData) => {
     delete profileWithSerializableDates.email;
     return profileWithSerializableDates;
 };
+exports.preparePublicProfile = preparePublicProfile;
 const router = express_1.default.Router();
 // GET /users/id/:userId - Get user profile by ID
 router.get("/id/:userId", async (req, res) => {
@@ -74,7 +75,7 @@ router.get("/id/:userId", async (req, res) => {
             return;
         }
         const userData = userDoc.data();
-        const publicProfile = preparePublicProfile(userData);
+        const publicProfile = (0, exports.preparePublicProfile)(userData);
         res.status(200).send(publicProfile);
     }
     catch (error) {
@@ -94,7 +95,7 @@ router.get("/username/:username", async (req, res) => {
         }
         const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data();
-        const publicProfile = preparePublicProfile(userData);
+        const publicProfile = (0, exports.preparePublicProfile)(userData);
         res.status(200).send(publicProfile);
     }
     catch (error) {
@@ -149,7 +150,7 @@ router.get("/:userId/posts", async (req, res) => {
         // Map posts and embed author info, transforming to match frontend model
         const posts = querySnapshot.docs.map(doc => {
             const postData = doc.data();
-            const authorPublicProfile = preparePublicProfile(authorProfile);
+            const authorPublicProfile = (0, exports.preparePublicProfile)(authorProfile);
             return {
                 id: doc.id,
                 author: authorPublicProfile,
