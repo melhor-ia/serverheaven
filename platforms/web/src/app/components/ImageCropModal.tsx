@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { Button } from './ui/Button';
+import NextImage from 'next/image';
 
 interface ImageCropModalProps {
     isOpen: boolean;
@@ -105,7 +106,7 @@ export const ImageCropModal = ({ isOpen, imageSrc, aspect, onClose, onCropComple
                         minHeight={100}
                         ruleOfThirds
                     >
-                        <img ref={imgRef} src={imageSrc} onLoad={onImageLoad} alt="Crop preview" style={{ maxHeight: '60vh', userSelect: 'none' }} />
+                        <NextImage ref={imgRef} src={imageSrc} onLoad={onImageLoad} alt="Crop preview" width={800} height={600} style={{ maxHeight: '60vh', userSelect: 'none', objectFit: 'contain' }} />
                     </ReactCrop>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4">

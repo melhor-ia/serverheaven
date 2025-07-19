@@ -332,6 +332,10 @@ const ProfilePage = () => {
         }
     };
 
+    const handlePostDelete = (postId: string) => {
+        setPosts(currentPosts => currentPosts.filter(p => p.id !== postId));
+    };
+
     const handleFileSelect = (file: File, type: 'avatar' | 'cover') => {
         const reader = new FileReader();
         reader.onload = () => {
@@ -682,6 +686,7 @@ const ProfilePage = () => {
                                                     <PostCard
                                                         key={post.id}
                                                         post={post}
+                                                        onPostDelete={handlePostDelete}
                                                     />
                                                 ))
                                              ) : !isOwner ? (

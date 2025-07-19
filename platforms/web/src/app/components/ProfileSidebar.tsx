@@ -39,8 +39,39 @@ interface ProfileSidebarProps {
 export const ProfileSidebar = ({ post, onClose }: ProfileSidebarProps) => {
     const [hoveredBadge, setHoveredBadge] = useState<BadgeType | null>(null);
 
-    // Placeholder content. This will be replaced with a real profile preview.
-    const author = post.author as ProfileUser;
+    if (post.author.type !== 'user') {
+        return (
+            <div className="fixed top-0 left-0 h-full w-80 bg-background border-r border-border z-30 flex flex-col">
+                <div className="p-4 flex justify-between items-center border-b border-border">
+                    <h2 className="font-bold text-lg">Author Information</h2>
+                    <Button variant="ghost" size="icon" onClick={onClose}>
+                        <X className="h-5 w-5" />
+                    </Button>
+                </div>
+                <div className="flex-1 p-6 flex flex-col items-center justify-center text-center">
+                     {post.author.avatar_url ? (
+                        <NextImage
+                            src={post.author.avatar_url}
+                            alt={post.author.name || 'server avatar'}
+                            width={96}
+                            height={96}
+                            className="h-24 w-24 rounded-full object-cover mb-4"
+                        />
+                    ) : (
+                        <FaUserCircle className="text-muted-foreground h-24 w-24 mb-4" />
+                    )}
+                    <h3 className="text-xl font-bold text-white">{post.author.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-2">
+                        This post was made by a server. Full server profiles are not yet available.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    // This is now safe because we've handled the 'server' case.
+    const author = post.author as unknown as ProfileUser;
+    
     // Add mock badges to the author object
     if (author) {
         author.badges = ['supporter', 'angel', 'pioneer'];

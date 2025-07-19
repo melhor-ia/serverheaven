@@ -20,11 +20,14 @@ export interface Server {
     id: string;
     name: string;
     avatar_url: string;
+    admins?: string[];
 }
+
+export type PostAuthor = (User & { type: 'user' }) | (Server & { type: 'server' });
 
 export interface Post {
     id: string;
-    author: User;
+    author: PostAuthor;
     content: string;
     likes: number;
     commentCount: number;

@@ -2,18 +2,25 @@
 
 import NextImage from 'next/image';
 import { Post } from '@/lib/types';
-import { FaUserCircle, FaHeart, FaComment } from 'react-icons/fa';
+import { FaUserCircle, FaHeart, FaComment, FaEllipsisV } from 'react-icons/fa';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { CommentSection } from './CommentSection';
 import { AnimatePresence, motion } from 'framer-motion';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/app/components/ui/dropdown-menu";
 
 interface PostCardProps {
     post: Post;
     onCardClick?: () => void;
+    onPostDelete?: (postId: string) => void;
 }
 
-const PostCard = ({ post, onCardClick }: PostCardProps) => {
+const PostCard = ({ post, onCardClick, onPostDelete }: PostCardProps) => {
     const { currentUser } = useAuth();
     const [likeCount, setLikeCount] = useState(post.likes || 0);
     // We'd need to know if the user has already liked this post.
@@ -39,6 +46,39 @@ const PostCard = ({ post, onCardClick }: PostCardProps) => {
 
     const [commentsVisible, setCommentsVisible] = useState(false);
     const postDate = post.createdAt ? new Date(post.createdAt).toLocaleDateString() : 'Some time ago';
+
+    const isAuthor = currentUser && post.author && (
+        (post.author.type === 'user' && post.author.id === currentUser.uid) ||
+        (post.author.type === 'server' && post.author.admins?.includes(currentUser.uid))
+    );
+
+    const handleDelete = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!currentUser || !isAuthor) {
+            console.error("Not authorized to delete this post.");
+            return;
+        }
+
+        if (window.confirm("Are you sure you want to delete this post?")) {
+            try {
+                const token = await currentUser.getIdToken();
+                const response = await fetch(`/api/posts/${post.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                if (response.ok) {
+                    onPostDelete?.(post.id);
+                } else {
+                    console.error("Failed to delete post");
+                }
+            } catch (error) {
+                console.error("Error deleting post:", error);
+            }
+        }
+    };
 
     const handleLike = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -160,7 +200,7 @@ const PostCard = ({ post, onCardClick }: PostCardProps) => {
                 {post.author && post.author.avatar_url ? (
                     <NextImage 
                         src={post.author.avatar_url} 
-                        alt={post.author.display_name || 'author avatar'} 
+                        alt={(post.author.type === 'user' ? post.author.display_name : post.author.name) || 'author avatar'}
                         width={40}
                         height={40}
                         className="h-10 w-10 rounded-full object-cover" 
@@ -169,9 +209,25 @@ const PostCard = ({ post, onCardClick }: PostCardProps) => {
                     <FaUserCircle className="text-muted-foreground h-10 w-10" />
                 )}
                 <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                        <p className="font-bold text-white">{post.author ? post.author.display_name : 'Anonymous'}</p>
-                        <p className="text-sm text-muted-foreground">· {postDate}</p>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <p className="font-bold text-white">{post.author ? (post.author.type === 'user' ? post.author.display_name : post.author.name) : 'Anonymous'}</p>
+                            <p className="text-sm text-muted-foreground">· {postDate}</p>
+                        </div>
+                        {isAuthor && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <button onClick={(e) => e.stopPropagation()} className="p-2 rounded-full hover:bg-gray-800">
+                                        <FaEllipsisV className="text-muted-foreground" />
+                                    </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+                                    <DropdownMenuItem onClick={handleDelete} className="text-red-500 hover:!text-red-500 hover:!bg-red-900/50">
+                                        Delete Post
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
                     </div>
                     <div 
                       className="prose prose-sm prose-invert max-w-none text-foreground mt-2"

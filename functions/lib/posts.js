@@ -347,5 +347,57 @@ router.post("/:postId/comment", middleware_1.authenticate, async (req, res) => {
         }
     }
 });
+// DELETE /posts/:postId - Delete a post
+router.delete("/:postId", middleware_1.authenticate, async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const userId = req.user?.uid;
+        if (!userId) {
+            res.status(401).send({ message: "Unauthorized" });
+            return;
+        }
+        const postRef = db.collection("posts").doc(postId);
+        const postDoc = await postRef.get();
+        if (!postDoc.exists) {
+            res.status(404).send({ message: "Post not found" });
+            return;
+        }
+        const postData = postDoc.data();
+        let isAuthorized = false;
+        if (postData?.author_user_id === userId) {
+            isAuthorized = true;
+        }
+        else if (postData?.author_server_id) {
+            const serverDoc = await db.collection("servers").doc(postData.author_server_id).get();
+            if (serverDoc.exists && serverDoc.data()?.admins.includes(userId)) {
+                isAuthorized = true;
+            }
+        }
+        if (!isAuthorized) {
+            res.status(403).send({ message: "Forbidden: You do not have permission to delete this post." });
+            return;
+        }
+        const interactionsRef = postRef.collection("interactions");
+        const interactionsSnapshot = await interactionsRef.get();
+        const batch = db.batch();
+        if (!interactionsSnapshot.empty) {
+            interactionsSnapshot.docs.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+        }
+        batch.delete(postRef);
+        await batch.commit();
+        res.status(200).send({ data: { message: "Post deleted successfully" } });
+    }
+    catch (error) {
+        console.error("Error deleting on post:", error);
+        if (error.message === "Post not found") {
+            res.status(404).send({ message: "Post not found" });
+        }
+        else {
+            res.status(500).send({ message: "Internal Server Error" });
+        }
+    }
+});
 exports.default = router;
 //# sourceMappingURL=posts.js.map

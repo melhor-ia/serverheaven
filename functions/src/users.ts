@@ -121,59 +121,52 @@ router.get("/check-username", async (req: Request, res: Response) => {
     }
 });
 
-// GET /users/:userId/posts - Get all posts for a specific user
+// GET /api/users/:userId/posts - Get all posts by a specific user
 router.get("/:userId/posts", async (req: Request, res: Response) => {
-    const { userId } = req.params;
-
     try {
-        // First, get the author's public information to embed in each post
-        const userDoc = await admin.firestore().collection("users").doc(userId).get();
-        if (!userDoc.exists) {
-            res.status(404).send({ message: "Author not found" });
-            return;
-        }
-        const userData = userDoc.data() as UserDocument;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { email, ...authorProfile } = userData;
-
-        const postsRef = admin.firestore().collection("posts");
-        const querySnapshot = await postsRef
+        const { userId } = req.params;
+        const postsSnapshot = await admin.firestore().collection("posts")
             .where("author_user_id", "==", userId)
-            .where("status", "==", "active")
+            .where('status', '==', 'active')
             .orderBy("created_at", "desc")
-            .limit(20)
             .get();
 
-        if (querySnapshot.empty) {
-            res.status(200).send([]);
+        if (postsSnapshot.empty) {
+            res.status(200).json([]);
             return;
         }
 
-        // Map posts and embed author info, transforming to match frontend model
-        const posts = querySnapshot.docs.map(doc => {
-            const postData = doc.data();
-            const authorPublicProfile = preparePublicProfile(authorProfile as UserDocument);
+        const userDoc = await admin.firestore().collection('users').doc(userId).get();
+        if (!userDoc.exists) {
+            // This case should be rare if posts exist, but good to handle.
+            res.status(404).json({ message: 'Author not found' });
+            return;
+        }
+        const authorData = preparePublicProfile(userDoc.data() as UserDocument);
+        const author = { ...authorData, type: 'user' };
 
+
+        const posts = postsSnapshot.docs.map(doc => {
+            const postData = doc.data() as any; // Firestore data
             return {
                 id: doc.id,
-                author: authorPublicProfile,
                 content: postData.content,
                 likes: postData.like_count || 0,
                 commentCount: postData.comment_count || 0,
-                createdAt: postData.created_at.toDate().toISOString(),
-                server: postData.author_server_id || null, // Basic server info
-                // Fields not on the frontend model are implicitly excluded
+                createdAt: postData.created_at.toDate(),
+                author: author, // Embed the author data
             };
         });
 
-        res.status(200).send(posts);
+        res.status(200).json(posts);
     } catch (error) {
-        logger.error(`Error fetching posts for user ${userId}:`, error);
+        console.error("Error fetching user posts:", error);
         res.status(500).send({ message: "Internal Server Error" });
     }
 });
 
-// GET /users/search?q=... - Search for users by username for mentions
+
+// GET /users/search - Search for users
 router.get("/search", async (req: Request, res: Response) => {
     const { q } = req.query;
 

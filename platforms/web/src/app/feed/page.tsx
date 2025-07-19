@@ -64,6 +64,10 @@ const FeedPage = () => {
         }
     };
 
+    const handlePostDelete = (postId: string) => {
+        setPosts(currentPosts => currentPosts.filter(p => p.id !== postId));
+    };
+
     const handleCardClick = (post: Post) => {
         setSelectedPost(post);
     };
@@ -110,6 +114,7 @@ const FeedPage = () => {
                                             key={post.id}
                                             post={post}
                                             onCardClick={() => handleCardClick(post)}
+                                            onPostDelete={handlePostDelete}
                                         />
                                     ))
                                 ) : (
