@@ -61,10 +61,11 @@ interface ProfileHeaderProps {
     newAvatarPreview: string | null;
     newCoverPreview: string | null;
     coverRemoved: boolean;
+    updateError: string | null;
 }
 
 
-const ProfileHeader: FC<ProfileHeaderProps> = ({ user, isOwner, isEditing, onEditToggle, onDiscard, onDisplayNameChange, newDisplayName, handleFileSelect, onRemoveCover, newAvatarPreview, newCoverPreview, coverRemoved }) => {
+const ProfileHeader: FC<ProfileHeaderProps> = ({ user, isOwner, isEditing, onEditToggle, onDiscard, onDisplayNameChange, newDisplayName, handleFileSelect, onRemoveCover, newAvatarPreview, newCoverPreview, coverRemoved, updateError }) => {
     const avatarInputRef = useRef<HTMLInputElement>(null);
     const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -171,13 +172,18 @@ const ProfileHeader: FC<ProfileHeaderProps> = ({ user, isOwner, isEditing, onEdi
                                 <div className="flex gap-3 mt-4 md:mt-0">
                                     {isOwner ? (
                                         isEditing ? (
-                                            <div className="flex items-center gap-2">
-                                                <Button size="lg" onClick={onEditToggle} className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 backdrop-blur-sm hover:bg-emerald-500/30">
-                                                    <ChevronRight className="mr-2 h-5 w-5" /> Save
-                                                </Button>
-                                                <Button size="lg" variant="ghost" onClick={onDiscard} className="text-muted-foreground hover:bg-white/10 hover:text-white">
-                                                    <X className="mr-2 h-5 w-5" /> Discard
-                                                </Button>
+                                            <div className="flex flex-col items-end gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <Button size="lg" onClick={onEditToggle} className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 backdrop-blur-sm hover:bg-emerald-500/30">
+                                                        <ChevronRight className="mr-2 h-5 w-5" /> Save
+                                                    </Button>
+                                                    <Button size="lg" variant="ghost" onClick={onDiscard} className="text-muted-foreground hover:bg-white/10 hover:text-white">
+                                                        <X className="mr-2 h-5 w-5" /> Discard
+                                                    </Button>
+                                                </div>
+                                                 {updateError && (
+                                                    <p className="text-sm text-red-400 animate-fade-in">{updateError}</p>
+                                                )}
                                             </div>
                                         ) : (
                                             <Button size="lg" onClick={onEditToggle} className="bg-white/10 border border-white/20 text-white backdrop-blur-sm hover:bg-white/20">
@@ -224,12 +230,16 @@ const ProfilePage = () => {
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [updateError, setUpdateError] = useState<string | null>(null);
 
     const [activeTab, setActiveTab] = useState('Posts');
     const [hoveredBadge, setHoveredBadge] = useState<BadgeType | null>(null);
     const [carouselIndex, setCarouselIndex] = useState(0);
     const [isEditing, setIsEditing] = useState(false);
     const [newDisplayName, setNewDisplayName] = useState('');
+    const [newBio, setNewBio] = useState('');
+    const [newTags, setNewTags] = useState<string[]>([]);
+    const [tagInput, setTagInput] = useState('');
     const [imageToCrop, setImageToCrop] = useState<{ src: string, type: 'avatar' | 'cover', aspect: number } | null>(null);
     const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
     const [newCoverFile, setNewCoverFile] = useState<File | null>(null);
@@ -278,6 +288,8 @@ const ProfilePage = () => {
 
                 setUser(fullUser);
                 setNewDisplayName(fullUser.display_name);
+                setNewBio(fullUser.bio ?? '');
+                setNewTags(fullUser.tags ?? []);
                 document.title = `Server Heaven | ${fullUser.display_name}`;
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -360,6 +372,8 @@ const ProfilePage = () => {
     const handleDiscardChanges = () => {
         setIsEditing(false);
         setNewDisplayName(user?.display_name || '');
+        setNewBio(user?.bio || '');
+        setNewTags(user?.tags || []);
         if (newAvatarPreview) URL.revokeObjectURL(newAvatarPreview);
         if (newCoverPreview) URL.revokeObjectURL(newCoverPreview);
         setNewAvatarFile(null);
@@ -367,16 +381,27 @@ const ProfilePage = () => {
         setNewAvatarPreview(null);
         setNewCoverPreview(null);
         setCoverRemoved(false);
+        setUpdateError(null);
     };
 
 
     const handleUpdateProfile = async () => {
         if (!user || !currentUser) return;
+        setUpdateError(null);
 
-        const updatedData: { displayName?: string; avatarUrl?: string; coverUrl?: string; } = {};
+        const updatedData: { displayName?: string; avatarUrl?: string; coverUrl?: string; bio?: string, tags?: string[] } = {};
 
         if (newDisplayName !== user.display_name) {
             updatedData.displayName = newDisplayName;
+        }
+
+        if (newBio !== (user.bio || '')) {
+            updatedData.bio = newBio;
+        }
+        
+        const tagsChanged = newTags.length !== user.tags.length || newTags.some((tag, i) => tag !== user.tags[i]);
+        if (tagsChanged) {
+            updatedData.tags = newTags;
         }
 
         try {
@@ -410,7 +435,8 @@ const ProfilePage = () => {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to update profile');
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to update profile');
             }
 
             const updatedUser = await response.json();
@@ -420,6 +446,8 @@ const ProfilePage = () => {
             }));
 
             setNewDisplayName(updatedUser.display_name ?? user.display_name);
+            setNewBio(updatedUser.bio ?? (user.bio || ''));
+            setNewTags(updatedUser.tags ?? (user.tags || []));
             if (newAvatarPreview) URL.revokeObjectURL(newAvatarPreview);
             if (newCoverPreview) URL.revokeObjectURL(newCoverPreview);
             setNewAvatarFile(null);
@@ -431,7 +459,7 @@ const ProfilePage = () => {
 
         } catch (error) {
             console.error("Failed to update profile", error);
-            // TODO: show error to user
+            setUpdateError(error instanceof Error ? error.message : "An unknown error occurred while updating your profile.");
         }
     };
 
@@ -441,10 +469,13 @@ const ProfilePage = () => {
             handleUpdateProfile();
         } else {
             setNewDisplayName(user.display_name);
+            setNewBio(user.bio || '');
+            setNewTags(user.tags || []);
             setNewAvatarPreview(null);
             setNewCoverPreview(null);
             setCoverRemoved(false);
             setIsEditing(true);
+            setUpdateError(null);
         }
     };
 
@@ -484,7 +515,17 @@ const ProfilePage = () => {
         // About Section
         <div key="about">
             <h2 className="text-xl font-bold font-mono uppercase tracking-wider mb-4 text-white">About {user.display_name}</h2>
-            <p className="text-muted-foreground text-base leading-relaxed">{user.bio}</p>
+            {isEditing ? (
+                <textarea
+                    value={newBio}
+                    onChange={(e) => setNewBio(e.target.value)}
+                    className="w-full bg-black/20 border-2 border-border focus:border-emerald-500 focus:ring-0 rounded-md p-2 text-base text-muted-foreground font-sans transition-colors"
+                    rows={4}
+                    placeholder="Tell everyone a little about yourself..."
+                />
+            ) : (
+                <p className="text-muted-foreground text-base leading-relaxed">{user.bio || 'This user hasn\'t written a bio yet.'}</p>
+            )}
             <div className="flex items-center gap-2 mt-4 text-muted-foreground text-sm">
                 <Calendar className="h-4 w-4" />
                 <span>Joined on {new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
@@ -494,12 +535,47 @@ const ProfilePage = () => {
         <div key="tags">
             <h2 className="text-xl font-bold font-mono uppercase tracking-wider mb-4 text-white">Tags</h2>
             <div className="flex flex-wrap gap-2">
-                {user.tags.map(tag => (
-                    <Badge key={tag} className="bg-emerald-900 border border-emerald-700 text-emerald-300 text-sm font-mono px-3 py-1">
+                {(isEditing ? newTags : user.tags).map(tag => (
+                     <Badge key={tag} className="bg-emerald-900 border border-emerald-700 text-emerald-300 text-sm font-mono px-3 py-1 flex items-center gap-1.5 transition-all">
                         {tag}
+                        {isEditing && (
+                            <button 
+                                onClick={() => setNewTags(currentTags => currentTags.filter(t => t !== tag))} 
+                                className="rounded-full hover:bg-black/30 p-0.5"
+                            >
+                                <X className="h-3 w-3" />
+                            </button>
+                        )}
                     </Badge>
                 ))}
             </div>
+             {isEditing && (
+                <div className="mt-4">
+                    <input
+                        type="text"
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && tagInput.trim()) {
+                                e.preventDefault();
+                                const newTag = tagInput.trim();
+                                if (newTag && !newTags.includes(newTag) && newTags.length < 5) {
+                                    setNewTags([...newTags, newTag]);
+                                }
+                                setTagInput('');
+                            }
+                        }}
+                        placeholder="Add a tag and press Enter..."
+                        className="w-full bg-black/20 border-2 border-border focus:border-emerald-500 focus:ring-0 rounded-md p-2 text-base text-white font-mono transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={newTags.length >= 5}
+                    />
+                     {newTags.length >= 5 && (
+                        <p className="text-xs text-amber-400 mt-2">
+                            You have reached the maximum of 5 tags. Remove one to add another.
+                        </p>
+                    )}
+                </div>
+            )}
         </div>
     ];
 
@@ -529,6 +605,7 @@ const ProfilePage = () => {
                     newAvatarPreview={newAvatarPreview}
                     newCoverPreview={newCoverPreview}
                     coverRemoved={coverRemoved}
+                    updateError={updateError}
                 />
 
                 {imageToCrop && (
